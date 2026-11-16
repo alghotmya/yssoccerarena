@@ -1,11 +1,12 @@
 import {
-  BALL_FRICTION,
+  BALL_DRAG,
   BALL_MAX_SPEED,
   BALL_RADIUS,
   COUNTDOWN_DURATION,
   FIELD_HEIGHT,
   FIELD_WIDTH,
   GOAL_CELEBRATION_DURATION,
+  ROUND_RESTART_COUNTDOWN,
   KICK_COOLDOWN,
   KICK_RANGE,
   KICK_STRENGTH,
@@ -17,12 +18,10 @@ import {
   PLAYER_RADIUS,
   PLAYER_SPEED,
   TOUCH_STRENGTH,
-  WALL_THICKNESS,
 } from './constants'
 import {
   clampPlayer,
   distance,
-  fullyCrossedGoalLine,
   getGoalMouth,
   resolveBallPlayer,
   resolveBallWalls,
@@ -81,6 +80,7 @@ export class GameEngine {
   private expressionHoldTimer = 0
   private nearMissCooldown = 0
   private saveCooldown = 0
+  private wallSfxCooldown = 0
   private lastCountdownInt = -1
   private goalLocked = false
 
@@ -147,6 +147,7 @@ export class GameEngine {
     this.updateExpressionTimers(dt)
     this.nearMissCooldown = Math.max(0, this.nearMissCooldown - dt)
     this.saveCooldown = Math.max(0, this.saveCooldown - dt)
+    this.wallSfxCooldown = Math.max(0, this.wallSfxCooldown - dt)
     this.nearMissFlash = Math.max(0, this.nearMissFlash - dt)
 
     if (this.phase === 'countdown') {
@@ -175,7 +176,7 @@ export class GameEngine {
           this.emitSnapshot()
         } else {
           this.phase = 'countdown'
-          this.countdown = COUNTDOWN_DURATION
+          this.countdown = ROUND_RESTART_COUNTDOWN
           this.lastCountdownInt = -1
           this.resetRound(true)
           this.emitSnapshot()
@@ -271,8 +272,9 @@ export class GameEngine {
   }
 
   private updateBall(dt: number) {
-    this.ball.vx *= BALL_FRICTION
-    this.ball.vy *= BALL_FRICTION
+    const drag = Math.exp(-BALL_DRAG * dt)
+    this.ball.vx *= drag
+    this.ball.vy *= drag
     this.clampBallSpeed()
 
     // Substeps for tunneling prevention
@@ -293,9 +295,12 @@ export class GameEngine {
 
       const wall = resolveBallWalls(this.ball)
       if (wall.hit) {
-        this.callbacks.onWallHit()
         this.ball.squash = 0.75
         this.spawnImpact(this.ball.x, this.ball.y, '#ffffff')
+        if (this.wallSfxCooldown <= 0) {
+          this.wallSfxCooldown = 0.09
+          this.callbacks.onWallHit()
+        }
       }
       if (wall.nearMiss && this.nearMissCooldown <= 0) {
         this.nearMissCooldown = 1.5
@@ -306,19 +311,8 @@ export class GameEngine {
       }
 
       if (!this.goalLocked && wall.goal) {
-        // Require full cross for counting
-        const side = wall.goal === 2 ? 'left' : 'right'
-        if (fullyCrossedGoalLine(this.ball, side) || Math.abs(this.ball.vx) > 40) {
-          // Double-check full cross: entire ball past goal line
-          const crossed =
-            wall.goal === 2
-              ? this.ball.x + this.ball.radius <= WALL_THICKNESS
-              : this.ball.x - this.ball.radius >= FIELD_WIDTH - WALL_THICKNESS
-          if (crossed) {
-            this.registerGoal(wall.goal)
-            return
-          }
-        }
+        this.registerGoal(wall.goal)
+        return
       }
     }
 

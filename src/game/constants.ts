@@ -15,14 +15,18 @@ export const KICK_COOLDOWN = 0.35
 export const TOUCH_STRENGTH = 220
 
 export const BALL_RADIUS = 14
-export const BALL_FRICTION = 0.992
-export const BALL_MAX_SPEED = 980
-export const BOUNCE = 0.82
+/** Per-second drag. Kept tiny so the ball rarely slows down. */
+export const BALL_DRAG = 0.03
+export const BALL_MAX_SPEED = 1100
+/** Near-elastic walls so the ball stays lively. */
+export const BOUNCE = 0.98
 export const WALL_THICKNESS = 18
 
 export const PHYSICS_DT = 1 / 120
 export const COUNTDOWN_DURATION = 3
-export const GOAL_CELEBRATION_DURATION = 2.2
+/** Shorter countdown after a goal so the round restarts quickly with the new score. */
+export const ROUND_RESTART_COUNTDOWN = 1.6
+export const GOAL_CELEBRATION_DURATION = 1.4
 export const EXPRESSION_HOLD = 2
 
 export const PLAYER1_COLOR = '#2f6fed'

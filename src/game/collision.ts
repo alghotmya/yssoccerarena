@@ -1,9 +1,7 @@
 import {
-  BALL_RADIUS,
   BOUNCE,
   FIELD_HEIGHT,
   FIELD_WIDTH,
-  GOAL_DEPTH,
   GOAL_POST_THICKNESS,
   GOAL_WIDTH,
   PLAYER_RADIUS,
@@ -116,85 +114,42 @@ export function resolveBallWalls(ball: BallState): WallHitResult {
     hit = true
   }
 
-  const inMouthY = ball.y > mouth.top + BALL_RADIUS * 0.2 && ball.y < mouth.bottom - BALL_RADIUS * 0.2
+  const inMouth =
+    ball.y - ball.radius >= mouth.top && ball.y + ball.radius <= mouth.bottom
   const leftLine = WALL_THICKNESS
   const rightLine = FIELD_WIDTH - WALL_THICKNESS
 
-  // Left side
-  if (ball.x - ball.radius < leftLine) {
-    if (inMouthY) {
-      if (ball.x + ball.radius < leftLine - GOAL_DEPTH * 0.15) {
-        goal = 2
-      } else {
-        // Still in mouth tunnel — keep inside tunnel bounds vertically via posts
-        constrainToMouth(ball, mouth, 'left')
-        if (ball.x - ball.radius < leftLine - GOAL_DEPTH) {
-          goal = 2
-        }
-      }
-    } else {
-      // Bounce on wall beside goal / posts
-      const postHit = hitGoalPost(ball, mouth, 'left')
-      if (!postHit) {
-        ball.x = leftLine + ball.radius
-        ball.vx = Math.abs(ball.vx) * BOUNCE
-        hit = true
-        if (Math.abs(ball.y - mouth.top) < 40 || Math.abs(ball.y - mouth.bottom) < 40) {
-          nearMiss = Math.abs(ball.vx) > 180
-        }
-      } else {
-        hit = true
-        nearMiss = Math.abs(ball.vx) > 200
-      }
+  if (hitGoalPost(ball, mouth, 'left') || hitGoalPost(ball, mouth, 'right')) {
+    hit = true
+    nearMiss = Math.hypot(ball.vx, ball.vy) > 180
+  }
+
+  // Left goal: the whole ball has crossed the goal line inside the mouth.
+  // Inside the mouth the ball is allowed to travel past the line; only the posts bounce.
+  if (inMouth && ball.x + ball.radius <= leftLine) {
+    goal = 2
+  } else if (!inMouth && ball.x - ball.radius < leftLine) {
+    ball.x = leftLine + ball.radius
+    if (ball.vx < 0) ball.vx = -ball.vx * BOUNCE
+    hit = true
+    if (Math.abs(ball.y - mouth.top) < 36 || Math.abs(ball.y - mouth.bottom) < 36) {
+      nearMiss = true
     }
   }
 
-  // Right side
-  if (ball.x + ball.radius > rightLine) {
-    if (inMouthY) {
-      if (ball.x - ball.radius > rightLine + GOAL_DEPTH * 0.15) {
-        goal = 1
-      } else {
-        constrainToMouth(ball, mouth, 'right')
-        if (ball.x + ball.radius > rightLine + GOAL_DEPTH) {
-          goal = 1
-        }
-      }
-    } else {
-      const postHit = hitGoalPost(ball, mouth, 'right')
-      if (!postHit) {
-        ball.x = rightLine - ball.radius
-        ball.vx = -Math.abs(ball.vx) * BOUNCE
-        hit = true
-        if (Math.abs(ball.y - mouth.top) < 40 || Math.abs(ball.y - mouth.bottom) < 40) {
-          nearMiss = Math.abs(ball.vx) > 180
-        }
-      } else {
-        hit = true
-        nearMiss = Math.abs(ball.vx) > 200
-      }
+  // Right goal.
+  if (inMouth && ball.x - ball.radius >= rightLine) {
+    goal = 1
+  } else if (!inMouth && ball.x + ball.radius > rightLine) {
+    ball.x = rightLine - ball.radius
+    if (ball.vx > 0) ball.vx = -ball.vx * BOUNCE
+    hit = true
+    if (Math.abs(ball.y - mouth.top) < 36 || Math.abs(ball.y - mouth.bottom) < 36) {
+      nearMiss = true
     }
   }
 
   return { hit, nearMiss, goal }
-}
-
-function constrainToMouth(ball: BallState, mouth: GoalMouth, side: 'left' | 'right') {
-  if (ball.y - ball.radius < mouth.top) {
-    ball.y = mouth.top + ball.radius
-    ball.vy = Math.abs(ball.vy) * BOUNCE
-  } else if (ball.y + ball.radius > mouth.bottom) {
-    ball.y = mouth.bottom - ball.radius
-    ball.vy = -Math.abs(ball.vy) * BOUNCE
-  }
-
-  if (side === 'left') {
-    const back = WALL_THICKNESS - GOAL_DEPTH + ball.radius
-    if (ball.x < back) ball.x = back
-  } else {
-    const back = FIELD_WIDTH - WALL_THICKNESS + GOAL_DEPTH - ball.radius
-    if (ball.x > back) ball.x = back
-  }
 }
 
 function hitGoalPost(ball: BallState, mouth: GoalMouth, side: 'left' | 'right'): boolean {
@@ -237,13 +192,6 @@ function hitGoalPost(ball: BallState, mouth: GoalMouth, side: 'left' | 'right'):
   }
 
   return collided
-}
-
-export function fullyCrossedGoalLine(ball: BallState, side: 'left' | 'right'): boolean {
-  if (side === 'left') {
-    return ball.x + ball.radius < WALL_THICKNESS
-  }
-  return ball.x - ball.radius > FIELD_WIDTH - WALL_THICKNESS
 }
 
 export function distance(ax: number, ay: number, bx: number, by: number) {

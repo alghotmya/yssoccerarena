@@ -5,6 +5,8 @@ interface GoalCelebrationProps {
   scorer: PlayerId | null
   name1: string
   name2: string
+  score1: number
+  score2: number
   expression1: Expression
   expression2: Expression
   spectacular: boolean
@@ -14,6 +16,8 @@ export function GoalCelebration({
   scorer,
   name1,
   name2,
+  score1,
+  score2,
   expression1,
   expression2,
   spectacular,
@@ -27,6 +31,9 @@ export function GoalCelebration({
         <div className="celebration-banner">
           <p className="goal-shout">{spectacular ? 'AMAZING GOAL!' : 'GOOOAL!'}</p>
           <p className="goal-scorer">{scorerName} scores!</p>
+          <p className="goal-scoreline">
+            {score1} — {score2}
+          </p>
         </div>
         <div className="celebration-faces">
           <Portrait

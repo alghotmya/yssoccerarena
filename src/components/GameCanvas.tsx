@@ -116,6 +116,8 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers }: GameCanvasP
             scorer={snapshot.lastScorer}
             name1={settings.player1Name}
             name2={settings.player2Name}
+            score1={snapshot.score1}
+            score2={snapshot.score2}
             expression1={snapshot.expression1}
             expression2={snapshot.expression2}
             spectacular={snapshot.spectacular}
@@ -135,9 +137,14 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers }: GameCanvasP
         )}
       </div>
 
-      <p className="hint-bar">
-        Blue: WASD + Space &nbsp;|&nbsp; Red: Arrows + Enter
-      </p>
+      <div className="match-toolbar">
+        <p className="hint-bar">Blue: WASD + Space &nbsp;|&nbsp; Red: Arrows + Enter</p>
+        {snapshot.phase !== 'gameover' && (
+          <button type="button" className="btn" onClick={handleRematch}>
+            Restart Match
+          </button>
+        )}
+      </div>
     </div>
   )
 }
