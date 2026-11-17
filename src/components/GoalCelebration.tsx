@@ -40,13 +40,13 @@ export function GoalCelebration({
             src={FACE_PATHS[1][expression1]}
             name={name1}
             expression={expression1}
-            color="blue"
+            color="red"
           />
           <Portrait
             src={FACE_PATHS[2][expression2]}
             name={name2}
             expression={expression2}
-            color="red"
+            color="blue"
           />
         </div>
       </div>

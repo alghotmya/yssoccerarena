@@ -36,14 +36,14 @@ export function GameOverScreen({
           {score1} — {score2}
         </p>
         <div className="gameover-faces">
-          <div className="portrait-card blue">
+          <div className="portrait-card red">
             <img
               src={FACE_PATHS[1][winner === 1 ? 'happy' : 'sad']}
               alt={name1}
             />
             <span>{winner === 1 ? 'Champion' : loserName}</span>
           </div>
-          <div className="portrait-card red">
+          <div className="portrait-card blue">
             <img
               src={FACE_PATHS[2][winner === 2 ? 'happy' : 'sad']}
               alt={name2}

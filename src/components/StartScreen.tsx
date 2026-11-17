@@ -33,12 +33,12 @@ export function StartScreen({ initial, onStart, onBack }: StartScreenProps) {
       </header>
 
       <div className="start-portraits">
-        <div className="portrait-card blue large">
+        <div className="portrait-card red large">
           <img src={FACE_PATHS[1].happy} alt="Player 1" />
           <span>{player1Name || 'Player 1'}</span>
         </div>
         <div className="vs-badge">VS</div>
-        <div className="portrait-card red large">
+        <div className="portrait-card blue large">
           <img src={FACE_PATHS[2].happy} alt="Player 2" />
           <span>{player2Name || 'Player 2'}</span>
         </div>

@@ -453,8 +453,8 @@ export class GameEngine {
   private spawnGoalConfetti(scorer: PlayerId) {
     const colors =
       scorer === 1
-        ? ['#2f6fed', '#7eb6ff', '#ffffff', '#ffd166']
-        : ['#e23d3d', '#ff8a8a', '#ffffff', '#ffd166']
+        ? ['#e23d3d', '#ff8a8a', '#ffffff', '#ffd166']
+        : ['#2f6fed', '#7eb6ff', '#ffffff', '#ffd166']
     for (let i = 0; i < 70; i++) {
       this.confetti.push({
         x: FIELD_WIDTH / 2 + (Math.random() - 0.5) * 200,

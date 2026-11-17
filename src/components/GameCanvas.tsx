@@ -139,7 +139,7 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers, onChangeGame 
       </div>
 
       <div className="match-toolbar">
-        <p className="hint-bar">Blue: WASD + Space &nbsp;|&nbsp; Red: Arrows + Enter</p>
+        <p className="hint-bar">Red: WASD + Space &nbsp;|&nbsp; Blue: Arrows + Enter</p>
         <div className="toolbar-actions">
           {snapshot.phase !== 'gameover' && (
             <button type="button" className="btn" onClick={handleRematch}>

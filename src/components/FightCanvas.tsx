@@ -119,11 +119,11 @@ export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasPr
                 {snapshot.rounds1} — {snapshot.rounds2}
               </p>
               <div className="gameover-faces">
-                <div className="portrait-card blue">
+                <div className="portrait-card red">
                   <img src={FACE_PATHS[1][snapshot.winner === 1 ? 'happy' : 'sad']} alt="" />
                   <span>{settings.player1Name}</span>
                 </div>
-                <div className="portrait-card red">
+                <div className="portrait-card blue">
                   <img src={FACE_PATHS[2][snapshot.winner === 2 ? 'happy' : 'sad']} alt="" />
                   <span>{settings.player2Name}</span>
                 </div>
@@ -145,7 +145,7 @@ export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasPr
       </div>
 
       <div className="match-toolbar">
-        <p className="hint-bar">Blue: A D, W jump, Space punch, S kick &nbsp;|&nbsp; Red: Arrows, Enter punch, Down kick</p>
+        <p className="hint-bar">Red: A D, W jump, Space punch, S kick &nbsp;|&nbsp; Blue: Arrows, Enter punch, Down kick</p>
         <div className="toolbar-actions">
           {snapshot.phase !== 'gameover' && (
             <button type="button" className="btn" onClick={restart}>

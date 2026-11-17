@@ -266,13 +266,13 @@ input:focus {
 }
 
 .controls-p1 {
-  background: var(--blue-soft);
-  border-color: var(--blue);
+  background: var(--red-soft);
+  border-color: var(--red);
 }
 
 .controls-p2 {
-  background: var(--red-soft);
-  border-color: var(--red);
+  background: var(--blue-soft);
+  border-color: var(--blue);
 }
 
 .controls-card h3 {
@@ -280,12 +280,9 @@ input:focus {
   font-family: var(--font-display);
 }
 
-.controls-p1 h3 {
-  color: var(--blue-soft);
-}
-
+.controls-p1 h3,
 .controls-p2 h3 {
-  color: var(--red-soft);
+  color: #fff6d8;
 }
 
 .controls-card ul {
@@ -417,6 +414,14 @@ input:focus-visible {
   background: linear-gradient(160deg, #ff7a59, #e23b6a);
 }
 
+.game-card.volley {
+  background: linear-gradient(160deg, #19b37a, #1282c4);
+}
+
+.game-card.spear {
+  background: linear-gradient(160deg, #c4472a, #7a1f4a);
+}
+
 .game-card:hover {
   transform: translateY(-3px);
 }
@@ -539,11 +544,11 @@ input:focus-visible {
 }
 
 .health-side.p1 img {
-  box-shadow: 0 0 0 3px var(--blue);
+  box-shadow: 0 0 0 3px var(--red);
 }
 
 .health-side.p2 img {
-  box-shadow: 0 0 0 3px var(--red);
+  box-shadow: 0 0 0 3px var(--blue);
 }
 
 .health-copy {
@@ -644,12 +649,12 @@ input:focus-visible {
 
 .score-side.p1 {
   justify-content: flex-start;
-  color: var(--blue);
+  color: var(--red);
 }
 
 .score-side.p2 {
   justify-content: flex-end;
-  color: var(--red);
+  color: var(--blue);
 }
 
 .score-name {

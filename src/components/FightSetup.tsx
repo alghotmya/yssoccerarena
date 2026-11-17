@@ -25,12 +25,12 @@ export function FightSetup({ initial, onStart, onBack }: FightSetupProps) {
       </header>
 
       <div className="start-portraits">
-        <div className="portrait-card blue large">
+        <div className="portrait-card red large">
           <img src={FACE_PATHS[1].angry} alt="Player 1" />
           <span>{player1Name || 'Player 1'}</span>
         </div>
         <div className="vs-badge">VS</div>
-        <div className="portrait-card red large">
+        <div className="portrait-card blue large">
           <img src={FACE_PATHS[2].angry} alt="Player 2" />
           <span>{player2Name || 'Player 2'}</span>
         </div>
@@ -86,7 +86,7 @@ export function FightSetup({ initial, onStart, onBack }: FightSetupProps) {
 
         <div className="controls-guide">
           <div className="controls-card controls-p1">
-            <h3>Player 1 — Blue</h3>
+            <h3>Player 1 — Red</h3>
             <ul>
               <li>
                 <kbd>A</kbd> <kbd>D</kbd> Move
@@ -100,7 +100,7 @@ export function FightSetup({ initial, onStart, onBack }: FightSetupProps) {
             </ul>
           </div>
           <div className="controls-card controls-p2">
-            <h3>Player 2 — Red</h3>
+            <h3>Player 2 — Blue</h3>
             <ul>
               <li>
                 <kbd>←</kbd> <kbd>→</kbd> Move

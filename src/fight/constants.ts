@@ -24,8 +24,8 @@ export const KO_PAUSE = 1.5
 export const FIGHT_COUNTDOWN = 3
 
 export const FIGHTER_COLOR = {
-  1: '#2f6fed',
-  2: '#e23d3d',
+  1: '#e23d3d',
+  2: '#2f6fed',
 } as const
 
 export const ROUND_OPTIONS = [2, 3, 5] as const

@@ -29,8 +29,8 @@ export const ROUND_RESTART_COUNTDOWN = 1.6
 export const GOAL_CELEBRATION_DURATION = 1.4
 export const EXPRESSION_HOLD = 2
 
-export const PLAYER1_COLOR = '#2f6fed'
-export const PLAYER2_COLOR = '#e23d3d'
+export const PLAYER1_COLOR = '#e23d3d'
+export const PLAYER2_COLOR = '#2f6fed'
 
 export const FACE_PATHS = {
   1: {
