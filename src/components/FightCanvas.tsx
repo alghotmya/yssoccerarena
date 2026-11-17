@@ -45,13 +45,14 @@ export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasPr
 
     const engine = new FightEngine(settings, input, {
       onSnapshot: (next) => setSnapshot({ ...next }),
-      onPunch: () => audio.play('kick'),
-      onHit: () => audio.play('player'),
-      onKo: () => audio.play('goal'),
+      onAttack: (kind) => audio.play(kind === 'punch' ? 'punch' : 'kick'),
+      onJump: () => audio.play('jump'),
+      onHit: () => audio.play('hit'),
+      onKo: () => audio.play('ko'),
       onWin: () => audio.play('win'),
       onTick: (value) => {
         if (value > 0) audio.play('countdown')
-        else audio.play('whistle')
+        else audio.play('fight')
       },
     })
     engineRef.current = engine

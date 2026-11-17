@@ -85,7 +85,7 @@ export class Renderer {
     const ctx = this.ctx
     const stripeW = FIELD_WIDTH / 12
     for (let i = 0; i < 12; i++) {
-      ctx.fillStyle = i % 2 === 0 ? '#3fa34d' : '#369443'
+      ctx.fillStyle = i % 2 === 0 ? '#4ed56a' : '#3cbe58'
       ctx.fillRect(i * stripeW, 0, stripeW + 1, FIELD_HEIGHT)
     }
 
@@ -132,8 +132,8 @@ export class Renderer {
       FIELD_HEIGHT / 2,
       FIELD_WIDTH * 0.7,
     )
-    grad.addColorStop(0, 'rgba(0,0,0,0)')
-    grad.addColorStop(1, 'rgba(0,0,0,0.18)')
+    grad.addColorStop(0, 'rgba(255,255,255,0.08)')
+    grad.addColorStop(1, 'rgba(0,0,0,0.08)')
     ctx.fillStyle = grad
     ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT)
   }
@@ -333,7 +333,7 @@ export class Renderer {
     ctx.fillStyle = 'rgba(0,0,0,0.35)'
     ctx.fillRect(0, 0, FIELD_WIDTH, FIELD_HEIGHT)
     ctx.fillStyle = '#fff'
-    ctx.font = 'bold 120px "Trebuchet MS", sans-serif'
+    ctx.font = '900 128px "Lilita One", Impact, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     ctx.strokeStyle = 'rgba(0,0,0,0.4)'

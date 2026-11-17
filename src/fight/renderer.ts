@@ -59,23 +59,44 @@ export class FightRenderer {
 
   private drawArena() {
     const ctx = this.ctx
-    const sky = ctx.createLinearGradient(0, 0, 0, ARENA_HEIGHT)
-    sky.addColorStop(0, '#1b2a4a')
-    sky.addColorStop(0.55, '#314e7a')
-    sky.addColorStop(1, '#c47a4a')
+    const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y)
+    sky.addColorStop(0, '#14082a')
+    sky.addColorStop(0.45, '#3a1468')
+    sky.addColorStop(0.78, '#ff2d8a')
+    sky.addColorStop(1, '#ffb703')
     ctx.fillStyle = sky
     ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT)
 
-    ctx.fillStyle = '#6b4a32'
-    ctx.fillRect(0, GROUND_Y, ARENA_WIDTH, ARENA_HEIGHT - GROUND_Y)
-    ctx.fillStyle = '#3f8f4a'
-    ctx.fillRect(0, GROUND_Y, ARENA_WIDTH, 18)
-    ctx.strokeStyle = 'rgba(255,255,255,0.35)'
-    ctx.lineWidth = 3
+    ctx.fillStyle = '#ffe66d'
     ctx.beginPath()
-    ctx.moveTo(48, GROUND_Y)
-    ctx.lineTo(ARENA_WIDTH - 48, GROUND_Y)
+    ctx.arc(180, 120, 36, 0, Math.PI * 2)
+    ctx.fill()
+
+    const buildings = [40, 120, 210, 300, 430, 540, 680, 790, 900, 1020, 1120]
+    buildings.forEach((x, i) => {
+      const h = 90 + ((i * 47) % 160)
+      ctx.fillStyle = i % 2 === 0 ? '#1a1038' : '#24124a'
+      ctx.fillRect(x, GROUND_Y - h, 90, h)
+      ctx.fillStyle = i % 3 === 0 ? '#3dfff3' : '#ff4ad2'
+      for (let wy = GROUND_Y - h + 16; wy < GROUND_Y - 16; wy += 22) {
+        ctx.fillRect(x + 14, wy, 10, 8)
+        ctx.fillRect(x + 40, wy, 10, 8)
+        ctx.fillRect(x + 64, wy, 10, 8)
+      }
+    })
+
+    ctx.fillStyle = '#2a2118'
+    ctx.fillRect(0, GROUND_Y + 18, ARENA_WIDTH, ARENA_HEIGHT - GROUND_Y)
+    ctx.fillStyle = '#3a3128'
+    ctx.fillRect(0, GROUND_Y, ARENA_WIDTH, 22)
+    ctx.strokeStyle = '#ffd23f'
+    ctx.lineWidth = 4
+    ctx.setLineDash([18, 16])
+    ctx.beginPath()
+    ctx.moveTo(0, GROUND_Y + 48)
+    ctx.lineTo(ARENA_WIDTH, GROUND_Y + 48)
     ctx.stroke()
+    ctx.setLineDash([])
   }
 
   private drawFighter(f: Fighter) {
@@ -131,21 +152,28 @@ export class FightRenderer {
     ctx.beginPath()
     ctx.arc(0, -128, headR + 3, 0, Math.PI * 2)
     ctx.lineWidth = 4
+    ctx.strokeStyle = '#ffd23f'
     ctx.stroke()
+    if (f.hitstun > 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.45)'
+      ctx.fillRect(-40, -160, 80, 170)
+    }
     ctx.restore()
   }
 
   private drawBanner(text: string) {
     const ctx = this.ctx
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'
+    const ko = text === 'K.O.!'
+    ctx.fillStyle = 'rgba(8, 0, 20, 0.45)'
     ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT)
-    ctx.fillStyle = '#fff'
-    ctx.font = 'bold 110px "Trebuchet MS", sans-serif'
+    ctx.font = '900 128px "Lilita One", "Fredoka", Impact, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.strokeStyle = 'rgba(0,0,0,0.45)'
-    ctx.lineWidth = 8
+    ctx.lineJoin = 'round'
+    ctx.lineWidth = 16
+    ctx.strokeStyle = '#14081f'
     ctx.strokeText(text, ARENA_WIDTH / 2, ARENA_HEIGHT / 2)
+    ctx.fillStyle = ko ? '#ff2d55' : '#ffe14a'
     ctx.fillText(text, ARENA_WIDTH / 2, ARENA_HEIGHT / 2)
   }
 }

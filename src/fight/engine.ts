@@ -38,7 +38,8 @@ export class FightEngine {
   private settings: FightSettings
   private input: InputManager
   private onSnapshot: (snapshot: FightSnapshot) => void
-  private onPunch: () => void
+  private onAttack: (kind: 'punch' | 'kick') => void
+  private onJump: () => void
   private onHit: () => void
   private onKo: () => void
   private onWin: () => void
@@ -55,7 +56,8 @@ export class FightEngine {
     input: InputManager,
     hooks: {
       onSnapshot: (snapshot: FightSnapshot) => void
-      onPunch: () => void
+      onAttack: (kind: 'punch' | 'kick') => void
+      onJump: () => void
       onHit: () => void
       onKo: () => void
       onWin: () => void
@@ -65,7 +67,8 @@ export class FightEngine {
     this.settings = settings
     this.input = input
     this.onSnapshot = hooks.onSnapshot
-    this.onPunch = hooks.onPunch
+    this.onAttack = hooks.onAttack
+    this.onJump = hooks.onJump
     this.onHit = hooks.onHit
     this.onKo = hooks.onKo
     this.onWin = hooks.onWin
@@ -183,6 +186,7 @@ export class FightEngine {
       if (jump && fighter.onGround) {
         fighter.vy = JUMP_SPEED
         fighter.onGround = false
+        this.onJump()
       }
       if (punch && fighter.cooldown <= 0) this.startAttack(fighter, 'punch')
       else if (kick && fighter.cooldown <= 0) this.startAttack(fighter, 'kick')
@@ -198,7 +202,7 @@ export class FightEngine {
     fighter.attackTime = kind === 'punch' ? PUNCH_ACTIVE : KICK_ACTIVE
     fighter.cooldown = kind === 'punch' ? PUNCH_COOLDOWN : KICK_COOLDOWN
     fighter.expression = 'angry'
-    this.onPunch()
+    this.onAttack(kind)
   }
 
   private integrate(fighter: Fighter, dt: number) {
