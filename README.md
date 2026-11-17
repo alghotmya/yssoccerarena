@@ -35,8 +35,8 @@ Place face photos in `public/players/`:
 | `player1-sad.jpg` | Sad |
 | `player2-happy.jpg` | Happy |
 | `player2-amazed.jpg` | Amazed |
-| `player2-angry.png` | Angry |
-| `player2-sad.png` | Sad |
+| `player2-angry.jpg` | Angry |
+| `player2-sad.jpg` | Sad |
 
 The game already ships with the current portraits. Replace any file with the same name to swap characters. Paths are configured in `src/game/constants.ts` (`FACE_PATHS`).
 

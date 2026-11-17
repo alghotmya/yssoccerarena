@@ -87,7 +87,6 @@ export default function App() {
       )}
       {screen === 'soccer-vs' && (
         <VersusScreen
-          artwork="/vs/soccer.jpg"
           title="Face-Off Soccer"
           player1Name={soccer.player1Name}
           player2Name={soccer.player2Name}
@@ -120,7 +119,6 @@ export default function App() {
       )}
       {screen === 'fight-vs' && (
         <VersusScreen
-          artwork="/vs/fight.jpg"
           title="Stickman Fight"
           player1Name={fight.player1Name}
           player2Name={fight.player2Name}
@@ -152,7 +150,6 @@ export default function App() {
       )}
       {screen === 'tennis-vs' && (
         <VersusScreen
-          artwork="/vs/volley.jpg"
           title="Volley Arcade"
           player1Name={tennis.player1Name}
           player2Name={tennis.player2Name}
@@ -184,7 +181,6 @@ export default function App() {
       )}
       {screen === 'spear-vs' && (
         <VersusScreen
-          artwork="/vs/spear.jpg"
           title="Spear Arcade"
           player1Name={spear.player1Name}
           player2Name={spear.player2Name}

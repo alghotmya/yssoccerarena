@@ -42,8 +42,8 @@ export const FACE_PATHS = {
   2: {
     happy: '/players/player2-happy.jpg',
     amazed: '/players/player2-amazed.jpg',
-    angry: '/players/player2-angry.png',
-    sad: '/players/player2-sad.png',
+    angry: '/players/player2-angry.jpg',
+    sad: '/players/player2-sad.jpg',
   },
 } as const
 

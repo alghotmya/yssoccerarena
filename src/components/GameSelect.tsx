@@ -1,5 +1,7 @@
 import { useRef } from 'react'
 import { AudioManager } from '../game/audio'
+import { FRONT_SLIDE_MS, SHOWCASE } from '../showcase'
+import { RotatingArt } from './RotatingArt'
 
 interface GameSelectProps {
   onSoccer: () => void
@@ -21,6 +23,12 @@ export function GameSelect({ onSoccer, onFight, onTennis, onSpear }: GameSelectP
       <div className="start-glow" />
       <header className="start-hero">
         <p className="eyebrow">Insert coin</p>
+        <RotatingArt
+          images={SHOWCASE}
+          intervalMs={FRONT_SLIDE_MS}
+          className="front-art"
+          alt="Player 1 versus Player 2"
+        />
         <h1>Choose your game</h1>
         <p className="subtitle">Red on the left. Blue on the right. One keyboard.</p>
       </header>
