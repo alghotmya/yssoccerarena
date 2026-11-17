@@ -12,6 +12,7 @@ interface GameCanvasProps {
   settings: MatchSettings
   onNewGame: () => void
   onChangePlayers: () => void
+  onChangeGame?: () => void
 }
 
 const emptySnapshot: GameSnapshot = {
@@ -28,7 +29,7 @@ const emptySnapshot: GameSnapshot = {
   nearMissFlash: 0,
 }
 
-export function GameCanvas({ settings, onNewGame, onChangePlayers }: GameCanvasProps) {
+export function GameCanvas({ settings, onNewGame, onChangePlayers, onChangeGame }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<GameEngine | null>(null)
   const audioRef = useRef(new AudioManager())
@@ -139,11 +140,18 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers }: GameCanvasP
 
       <div className="match-toolbar">
         <p className="hint-bar">Blue: WASD + Space &nbsp;|&nbsp; Red: Arrows + Enter</p>
-        {snapshot.phase !== 'gameover' && (
-          <button type="button" className="btn" onClick={handleRematch}>
-            Restart Match
-          </button>
-        )}
+        <div className="toolbar-actions">
+          {snapshot.phase !== 'gameover' && (
+            <button type="button" className="btn" onClick={handleRematch}>
+              Restart Match
+            </button>
+          )}
+          {onChangeGame && (
+            <button type="button" className="btn ghost" onClick={onChangeGame}>
+              All Games
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

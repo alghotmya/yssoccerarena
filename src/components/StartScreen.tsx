@@ -6,9 +6,10 @@ import { ControlsGuide } from './ControlsGuide'
 interface StartScreenProps {
   initial: MatchSettings
   onStart: (settings: MatchSettings) => void
+  onBack: () => void
 }
 
-export function StartScreen({ initial, onStart }: StartScreenProps) {
+export function StartScreen({ initial, onStart, onBack }: StartScreenProps) {
   const [player1Name, setPlayer1Name] = useState(initial.player1Name)
   const [player2Name, setPlayer2Name] = useState(initial.player2Name)
   const [winningScore, setWinningScore] = useState(initial.winningScore)
@@ -126,6 +127,9 @@ export function StartScreen({ initial, onStart }: StartScreenProps) {
 
         <button type="submit" className="btn primary mega">
           Start Match
+        </button>
+        <button type="button" className="btn ghost wide" onClick={onBack}>
+          All Games
         </button>
       </form>
     </div>
