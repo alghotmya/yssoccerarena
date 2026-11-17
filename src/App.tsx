@@ -4,6 +4,7 @@ import { FightSetup } from './components/FightSetup'
 import { GameCanvas } from './components/GameCanvas'
 import { GameSelect } from './components/GameSelect'
 import { StartScreen } from './components/StartScreen'
+import { VersusScreen } from './components/VersusScreen'
 import type { FightSettings } from './fight/types'
 import type { MatchSettings } from './types'
 
@@ -21,7 +22,14 @@ const defaultFight: FightSettings = {
   soundEnabled: true,
 }
 
-type Screen = 'pick' | 'soccer-setup' | 'soccer-match' | 'fight-setup' | 'fight-match'
+type Screen =
+  | 'pick'
+  | 'soccer-setup'
+  | 'soccer-vs'
+  | 'soccer-match'
+  | 'fight-setup'
+  | 'fight-vs'
+  | 'fight-match'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('pick')
@@ -43,6 +51,19 @@ export default function App() {
           onBack={() => setScreen('pick')}
           onStart={(next) => {
             setSoccer(next)
+            setScreen('soccer-vs')
+          }}
+        />
+      )}
+      {screen === 'soccer-vs' && (
+        <VersusScreen
+          artwork="/vs/soccer.jpg"
+          title="Face-Off Soccer"
+          player1Name={soccer.player1Name}
+          player2Name={soccer.player2Name}
+          soundEnabled={soccer.soundEnabled}
+          onBack={() => setScreen('soccer-setup')}
+          onStart={() => {
             setMatchKey((k) => k + 1)
             setScreen('soccer-match')
           }}
@@ -63,6 +84,19 @@ export default function App() {
           onBack={() => setScreen('pick')}
           onStart={(next) => {
             setFight(next)
+            setScreen('fight-vs')
+          }}
+        />
+      )}
+      {screen === 'fight-vs' && (
+        <VersusScreen
+          artwork="/vs/fight.jpg"
+          title="Stickman Fight"
+          player1Name={fight.player1Name}
+          player2Name={fight.player2Name}
+          soundEnabled={fight.soundEnabled}
+          onBack={() => setScreen('fight-setup')}
+          onStart={() => {
             setMatchKey((k) => k + 1)
             setScreen('fight-match')
           }}
