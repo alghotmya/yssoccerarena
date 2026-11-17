@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AudioManager } from '../game/audio'
-import { SHOWCASE, VERSUS_SLIDE_MS } from '../showcase'
+import { SHOWCASE, SLIDE_MS } from '../showcase'
 import { RotatingArt } from './RotatingArt'
 
 const START_SECONDS = 5
@@ -73,7 +73,7 @@ export function VersusScreen({
       <p className="eyebrow">{title}</p>
       <RotatingArt
         images={SHOWCASE}
-        intervalMs={VERSUS_SLIDE_MS}
+        intervalMs={SLIDE_MS}
         className="versus-art"
         alt={`${player1Name} versus ${player2Name}`}
       />

@@ -6,9 +6,8 @@ export const SHOWCASE = [
   '/showcase/05.jpg',
   '/showcase/06.jpg',
   '/showcase/07.jpg',
-  '/showcase/08.jpg',
-  '/showcase/09.jpg',
+  '/vs/front.jpg',
 ] as const
 
-export const FRONT_SLIDE_MS = 2000
-export const VERSUS_SLIDE_MS = 3000
+/** Both-player posters only. Each slide stays up for a few seconds. */
+export const SLIDE_MS = 3500
