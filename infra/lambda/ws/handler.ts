@@ -122,11 +122,12 @@ function managementClient(event: APIGatewayProxyWebsocketEventV2) {
   return new ApiGatewayManagementApiClient({ endpoint: callbackUrl })
 }
 
+/** Returns false when the connection is gone (410). */
 async function send(
   client: ApiGatewayManagementApiClient,
   connectionId: string,
   payload: unknown,
-) {
+): Promise<boolean> {
   try {
     await client.send(
       new PostToConnectionCommand({
@@ -134,14 +135,27 @@ async function send(
         Data: Buffer.from(JSON.stringify(payload)),
       }),
     )
+    return true
   } catch (err: unknown) {
     const status = (err as { $metadata?: { httpStatusCode?: number } })?.$metadata?.httpStatusCode
     if (status === 410) {
       await deleteKey(connPk(connectionId), 'META')
-      return
+      return false
     }
     throw err
   }
+}
+
+/** Drop a stale guest seat so a new player can join. */
+async function clearStaleGuest(room: RoomItem, client: ApiGatewayManagementApiClient) {
+  if (!room.guestConnectionId) return room
+  const alive = await send(client, room.guestConnectionId, { type: 'ping', t: Date.now() })
+  if (alive) return room
+  room.guestConnectionId = undefined
+  room.guestName = undefined
+  room.status = 'waiting'
+  await putRoom(room)
+  return room
 }
 
 async function peerId(room: RoomItem, connectionId: string): Promise<string | null> {
@@ -252,24 +266,41 @@ export const handler: APIGatewayProxyWebsocketHandlerV2 = async (event) => {
         .replace(/[^A-Z0-9]/g, '')
         .slice(0, 8)
       const playerName = String(body.playerName ?? 'Player 2').slice(0, 16)
-      const room = await getRoom(roomCode)
+      let room = await getRoom(roomCode)
       if (!room) {
         await send(client, connectionId, { type: 'error', message: 'Room not found' })
         return ok()
+      }
+      if (room.hostConnectionId === connectionId) {
+        await send(client, connectionId, {
+          type: 'error',
+          message: 'You are already the host of this room',
+        })
+        return ok()
+      }
+      if (room.guestConnectionId) {
+        room = await clearStaleGuest(room, client)
       }
       if (room.guestConnectionId) {
         await send(client, connectionId, { type: 'error', message: 'Room is full' })
         return ok()
       }
 
+      // Host socket may be dead after a bad match — reject early with a clear error.
+      const hostAlive = await send(client, room.hostConnectionId, { type: 'ping', t: Date.now() })
+      if (!hostAlive) {
+        await deleteKey(roomPk(room.roomCode), 'META')
+        await send(client, connectionId, {
+          type: 'error',
+          message: 'Host disconnected — ask them to create a new room',
+        })
+        return ok()
+      }
+
       room.guestConnectionId = connectionId
       room.guestName = playerName
       room.status = 'ready'
-      if (room.game === 'soccer' || room.game === 'tennis' || room.game === 'spear') {
-        room.settings = { ...room.settings, player2Name: playerName }
-      } else if (room.game === 'fight') {
-        room.settings = { ...room.settings, player2Name: playerName }
-      }
+      room.settings = { ...room.settings, player2Name: playerName }
       await putRoom(room)
       await putConn({
         pk: connPk(connectionId),

@@ -23,6 +23,7 @@ import type { SnakeSettings } from './snake/types'
 import type { SpearSettings } from './spear/types'
 import type { TanksSettings } from './tanks/types'
 import type { TennisSettings } from './tennis/types'
+import { getMultiplayerClient } from './net/client'
 import type { MatchSettings, OnlineSession } from './types'
 
 const defaultSoccer: MatchSettings = {
@@ -117,7 +118,10 @@ export default function App() {
   const [matchKey, setMatchKey] = useState(0)
   const [online, setOnline] = useState<OnlineSession | null>(null)
 
-  const clearOnline = () => setOnline(null)
+  const clearOnline = () => {
+    setOnline(null)
+    getMultiplayerClient().disconnect()
+  }
 
   const beginLocal = (next: Screen) => {
     clearOnline()

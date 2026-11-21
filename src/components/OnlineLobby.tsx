@@ -36,19 +36,38 @@ export function OnlineLobby({
   const seatRef = useRef<Seat | null>(null)
   const codeRef = useRef<string | null>(null)
   const onReadyRef = useRef(onReady)
+  const busyTimer = useRef<number | null>(null)
   onReadyRef.current = onReady
-  seatRef.current = seat
-  codeRef.current = createdCode
+
+  const clearBusyTimer = () => {
+    if (busyTimer.current != null) {
+      window.clearTimeout(busyTimer.current)
+      busyTimer.current = null
+    }
+  }
+
+  const armBusyTimeout = (label: string) => {
+    clearBusyTimer()
+    busyTimer.current = window.setTimeout(() => {
+      setBusy(false)
+      setError(`${label} timed out — check your connection and try again`)
+      setStatus('Something went wrong')
+    }, 10000)
+  }
 
   useEffect(() => {
     const client = getMultiplayerClient()
     const unsub = client.onMessage((msg: ServerMessage) => {
       if (msg.type === 'error') {
+        clearBusyTimer()
         setError(msg.message)
         setBusy(false)
         setStatus('Something went wrong')
       }
       if (msg.type === 'roomCreated') {
+        clearBusyTimer()
+        seatRef.current = msg.seat
+        codeRef.current = msg.roomCode
         setCreatedCode(msg.roomCode)
         setSeat(msg.seat)
         setHostName(msg.playerName)
@@ -57,6 +76,9 @@ export function OnlineLobby({
         setError(null)
       }
       if (msg.type === 'roomJoined') {
+        clearBusyTimer()
+        seatRef.current = msg.seat
+        codeRef.current = msg.roomCode
         setCreatedCode(msg.roomCode)
         setSeat(msg.seat)
         setHostName(msg.hostName)
@@ -73,7 +95,7 @@ export function OnlineLobby({
       if (msg.type === 'peerLeft') {
         setGuestHere(false)
         setGuestName('')
-        setStatus('Opponent left')
+        setStatus('Opponent left — waiting for a new guest…')
       }
       if (msg.type === 'matchStart') {
         const localSeat = seatRef.current
@@ -83,23 +105,21 @@ export function OnlineLobby({
       }
     })
     return () => {
+      clearBusyTimer()
       unsub()
     }
   }, [])
-
-  const ensureConnected = async () => {
-    const client = getMultiplayerClient()
-    await client.connect()
-    return client
-  }
 
   const createRoom = async () => {
     if (!configured) return
     setBusy(true)
     setError(null)
     setStatus('Creating room…')
+    armBusyTimeout('Create room')
     try {
-      const client = await ensureConnected()
+      const client = getMultiplayerClient()
+      client.disconnect()
+      await client.connect()
       const name = playerName.trim() || defaultName
       client.send({
         type: 'createRoom',
@@ -108,6 +128,7 @@ export function OnlineLobby({
         playerName: name,
       })
     } catch (err) {
+      clearBusyTimer()
       setBusy(false)
       setError(err instanceof Error ? err.message : 'Connect failed')
     }
@@ -115,18 +136,27 @@ export function OnlineLobby({
 
   const joinRoom = async () => {
     if (!configured) return
+    const code = roomCode.trim().toUpperCase()
+    if (code.length < 4) {
+      setError('Enter a valid room code')
+      return
+    }
     setBusy(true)
     setError(null)
     setStatus('Joining room…')
+    armBusyTimeout('Join room')
     try {
-      const client = await ensureConnected()
+      const client = getMultiplayerClient()
+      client.disconnect()
+      await client.connect()
       const name = playerName.trim() || 'Player 2'
       client.send({
         type: 'joinRoom',
-        roomCode: roomCode.trim().toUpperCase(),
+        roomCode: code,
         playerName: name,
       })
     } catch (err) {
+      clearBusyTimer()
       setBusy(false)
       setError(err instanceof Error ? err.message : 'Connect failed')
     }
@@ -205,7 +235,13 @@ export function OnlineLobby({
                 type="button"
                 className="btn primary mega"
                 disabled={!guestHere}
-                onClick={() => getMultiplayerClient().send({ type: 'startMatch' })}
+                onClick={() => {
+                  try {
+                    getMultiplayerClient().send({ type: 'startMatch' })
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : 'Not connected')
+                  }
+                }}
               >
                 {guestHere ? 'Start match' : 'Waiting for guest…'}
               </button>
@@ -220,6 +256,7 @@ export function OnlineLobby({
           type="button"
           className="btn ghost wide"
           onClick={() => {
+            clearBusyTimer()
             getMultiplayerClient().disconnect()
             onBack()
           }}

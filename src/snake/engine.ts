@@ -319,11 +319,16 @@ export class SnakeEngine {
   exportNetworkState() {
     return {
       phase: this.phase,
-      countdown: this.countdown,
+      countdown: round1(this.countdown),
       winner: this.winner,
       lastHit: this.lastHit,
-      koTimer: this.koTimer,
-      foods: this.foods.map((f) => ({ ...f })),
+      koTimer: round1(this.koTimer),
+      foods: this.foods.map((f) => ({
+        x: round1(f.x),
+        y: round1(f.y),
+        size: round1(f.size),
+        color: f.color,
+      })),
       p1: serializeWorm(this.p1),
       p2: serializeWorm(this.p2),
     }
@@ -336,17 +341,48 @@ export class SnakeEngine {
     this.lastHit = state.lastHit
     this.koTimer = state.koTimer
     this.foods = state.foods.map((f) => ({ ...f }))
-    Object.assign(this.p1, state.p1, { segments: state.p1.segments.map((s) => ({ ...s })) })
-    Object.assign(this.p2, state.p2, { segments: state.p2.segments.map((s) => ({ ...s })) })
+    applyWorm(this.p1, state.p1)
+    applyWorm(this.p2, state.p2)
     this.emit()
   }
 }
 
 function serializeWorm(worm: Worm) {
   return {
-    ...worm,
-    segments: worm.segments.map((s) => ({ ...s })),
+    id: worm.id,
+    angle: round2(worm.angle),
+    size: worm.size,
+    score: worm.score,
+    expression: worm.expression,
+    alive: worm.alive,
+    boost: worm.boost,
+    color: worm.color,
+    midColor: worm.midColor,
+    invuln: round1(worm.invuln),
+    // Keep payload small for API Gateway WebSocket limits.
+    segments: worm.segments.map((s) => ({ x: round1(s.x), y: round1(s.y) })),
   }
+}
+
+function applyWorm(target: Worm, src: ReturnType<typeof serializeWorm>) {
+  target.angle = src.angle
+  target.size = src.size
+  target.score = src.score
+  target.expression = src.expression
+  target.alive = src.alive
+  target.boost = src.boost
+  target.color = src.color
+  target.midColor = src.midColor
+  target.invuln = src.invuln
+  target.segments = src.segments.map((s) => ({ ...s }))
+}
+
+function round1(n: number) {
+  return Math.round(n * 10) / 10
+}
+
+function round2(n: number) {
+  return Math.round(n * 100) / 100
 }
 
 function makeWorm(id: PlayerId): Worm {

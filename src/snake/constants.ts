@@ -2,7 +2,7 @@ export const ARENA_WIDTH = 1280
 export const ARENA_HEIGHT = 720
 
 export const WORLD_PAD = 24
-export const FOOD_COUNT = 90
+export const FOOD_COUNT = 48
 export const START_LENGTH = 14
 export const SEGMENT_GAP = 10
 export const BASE_SPEED = 165

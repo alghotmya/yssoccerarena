@@ -31,15 +31,22 @@ export class MultiplayerClient {
     this.openPromise = new Promise<void>((resolve, reject) => {
       const ws = new WebSocket(url)
       this.ws = ws
+      let settled = false
 
       const onError = () => {
         cleanup()
-        reject(new Error('WebSocket connection failed'))
+        if (!settled) {
+          settled = true
+          reject(new Error('WebSocket connection failed'))
+        }
       }
 
       const onOpen = () => {
         cleanup()
-        resolve()
+        if (!settled) {
+          settled = true
+          resolve()
+        }
       }
 
       const cleanup = () => {
@@ -58,7 +65,7 @@ export class MultiplayerClient {
         }
       })
       ws.addEventListener('close', () => {
-        this.ws = null
+        if (this.ws === ws) this.ws = null
         this.openPromise = null
       })
     })
@@ -67,19 +74,34 @@ export class MultiplayerClient {
       await this.openPromise
     } catch (err) {
       this.openPromise = null
+      if (this.ws && this.ws.readyState !== WebSocket.OPEN) {
+        try {
+          this.ws.close()
+        } catch {
+          /* ignore */
+        }
+        this.ws = null
+      }
       throw err
     }
   }
 
   send(msg: ClientMessage) {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      throw new Error('Not connected — try again')
+    }
     this.ws.send(JSON.stringify(msg))
   }
 
   disconnect() {
-    this.ws?.close()
+    const ws = this.ws
     this.ws = null
     this.openPromise = null
+    try {
+      ws?.close()
+    } catch {
+      /* ignore */
+    }
   }
 }
 
