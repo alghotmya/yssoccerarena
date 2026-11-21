@@ -23,7 +23,15 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
 const ROOM_TTL_SECONDS = 60 * 60 * 3
 const CONN_TTL_SECONDS = 60 * 60 * 3
 
-type GameKind = 'soccer' | 'fight' | 'tennis' | 'spear' | 'tanks' | 'bombs' | 'snake'
+type GameKind =
+  | 'soccer'
+  | 'fight'
+  | 'tennis'
+  | 'spear'
+  | 'tanks'
+  | 'bombs'
+  | 'snake'
+  | 'rumble'
 type Seat = 1 | 2
 
 interface RoomItem {

@@ -9,6 +9,8 @@ import { SpearCanvas } from './components/SpearCanvas'
 import { SpearSetup } from './components/SpearSetup'
 import { BombsCanvas } from './components/BombsCanvas'
 import { BombsSetup } from './components/BombsSetup'
+import { RumbleCanvas } from './components/RumbleCanvas'
+import { RumbleSetup } from './components/RumbleSetup'
 import { SnakeCanvas } from './components/SnakeCanvas'
 import { SnakeSetup } from './components/SnakeSetup'
 import { TanksCanvas } from './components/TanksCanvas'
@@ -19,6 +21,7 @@ import { VersusScreen } from './components/VersusScreen'
 import type { BombsSettings } from './bombs/types'
 import type { FightSettings } from './fight/types'
 import type { GameKind } from './net/protocol'
+import type { RumbleSettings } from './rumble/types'
 import type { SnakeSettings } from './snake/types'
 import type { SpearSettings } from './spear/types'
 import type { TanksSettings } from './tanks/types'
@@ -75,6 +78,13 @@ const defaultSnake: SnakeSettings = {
   soundEnabled: true,
 }
 
+const defaultRumble: RumbleSettings = {
+  player1Name: 'Player 1',
+  player2Name: 'Player 2',
+  roundsToWin: 2,
+  soundEnabled: true,
+}
+
 type Screen =
   | 'pick'
   | 'soccer-setup'
@@ -105,6 +115,10 @@ type Screen =
   | 'snake-online'
   | 'snake-vs'
   | 'snake-match'
+  | 'rumble-setup'
+  | 'rumble-online'
+  | 'rumble-vs'
+  | 'rumble-match'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('pick')
@@ -115,6 +129,7 @@ export default function App() {
   const [tanks, setTanks] = useState<TanksSettings>(defaultTanks)
   const [bombs, setBombs] = useState<BombsSettings>(defaultBombs)
   const [snake, setSnake] = useState<SnakeSettings>(defaultSnake)
+  const [rumble, setRumble] = useState<RumbleSettings>(defaultRumble)
   const [matchKey, setMatchKey] = useState(0)
   const [online, setOnline] = useState<OnlineSession | null>(null)
 
@@ -153,6 +168,9 @@ export default function App() {
     } else if (game === 'snake') {
       setSnake({ ...defaultSnake, ...(settings as Partial<SnakeSettings>) })
       setScreen('snake-match')
+    } else if (game === 'rumble') {
+      setRumble({ ...defaultRumble, ...(settings as Partial<RumbleSettings>) })
+      setScreen('rumble-match')
     } else {
       setSpear({ ...defaultSpear, ...(settings as Partial<SpearSettings>) })
       setScreen('spear-match')
@@ -170,6 +188,7 @@ export default function App() {
           onTanks={() => beginLocal('tanks-setup')}
           onBombs={() => beginLocal('bombs-setup')}
           onSnake={() => beginLocal('snake-setup')}
+          onRumble={() => beginLocal('rumble-setup')}
         />
       )}
       {screen === 'soccer-setup' && (
@@ -540,6 +559,59 @@ export default function App() {
           onNewGame={() => {
             clearOnline()
             setScreen('snake-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
+        />
+      )}
+      {screen === 'rumble-setup' && (
+        <RumbleSetup
+          initial={rumble}
+          onBack={() => setScreen('pick')}
+          onStart={(next) => {
+            setRumble(next)
+            clearOnline()
+            setScreen('rumble-vs')
+          }}
+          onOnline={(next) => {
+            setRumble(next)
+            setScreen('rumble-online')
+          }}
+        />
+      )}
+      {screen === 'rumble-online' && (
+        <OnlineLobby
+          game="rumble"
+          gameTitle="Face-Off Rumble"
+          defaultName={rumble.player1Name}
+          settings={rumble as unknown as Record<string, unknown>}
+          onBack={() => setScreen('rumble-setup')}
+          onReady={(session, settings) => beginOnlineMatch('rumble', session, settings)}
+        />
+      )}
+      {screen === 'rumble-vs' && (
+        <VersusScreen
+          title="Face-Off Rumble"
+          player1Name={rumble.player1Name}
+          player2Name={rumble.player2Name}
+          soundEnabled={rumble.soundEnabled}
+          onBack={() => setScreen('rumble-setup')}
+          onStart={() => {
+            setMatchKey((k) => k + 1)
+            setScreen('rumble-match')
+          }}
+        />
+      )}
+      {screen === 'rumble-match' && (
+        <RumbleCanvas
+          key={matchKey}
+          settings={rumble}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('rumble-setup')
           }}
           onChangeGame={() => {
             clearOnline()

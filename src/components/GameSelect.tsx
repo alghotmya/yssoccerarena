@@ -11,9 +11,19 @@ interface GameSelectProps {
   onTanks: () => void
   onBombs: () => void
   onSnake: () => void
+  onRumble: () => void
 }
 
-export function GameSelect({ onSoccer, onFight, onTennis, onSpear, onTanks, onBombs, onSnake }: GameSelectProps) {
+export function GameSelect({
+  onSoccer,
+  onFight,
+  onTennis,
+  onSpear,
+  onTanks,
+  onBombs,
+  onSnake,
+  onRumble,
+}: GameSelectProps) {
   const audio = useRef(new AudioManager())
   const choose = (play: () => void) => {
     audio.current.resume()
@@ -84,6 +94,13 @@ export function GameSelect({ onSoccer, onFight, onTennis, onSpear, onTanks, onBo
           </span>
           <strong>Face-Off Snake</strong>
           <span>Widescreen arena with bots — climb the board!</span>
+        </button>
+        <button type="button" className="game-card rumble" onClick={() => choose(onRumble)}>
+          <span className="game-emoji" aria-hidden>
+            🥋
+          </span>
+          <strong>Face-Off Rumble</strong>
+          <span>Punch, kick, blast — neon Street Fighter vibes!</span>
         </button>
       </div>
     </div>

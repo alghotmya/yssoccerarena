@@ -1,4 +1,12 @@
-export type GameKind = 'soccer' | 'fight' | 'tennis' | 'spear' | 'tanks' | 'bombs' | 'snake'
+export type GameKind =
+  | 'soccer'
+  | 'fight'
+  | 'tennis'
+  | 'spear'
+  | 'tanks'
+  | 'bombs'
+  | 'snake'
+  | 'rumble'
 export type Seat = 1 | 2
 
 export interface NetInputFrame {
