@@ -83,7 +83,7 @@ export function GameSelect({ onSoccer, onFight, onTennis, onSpear, onTanks, onBo
             🐍
           </span>
           <strong>Face-Off Snake</strong>
-          <span>Eat, grow, and crash into your rival!</span>
+          <span>Widescreen arena with bots — climb the board!</span>
         </button>
       </div>
     </div>

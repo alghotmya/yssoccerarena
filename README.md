@@ -4,7 +4,7 @@ Local + online 2-player arcade suite for the browser: soccer, fight, tennis, spe
 
 **Face-Off Tanks** and **Face-Off Bombs** are original arcade takes inspired by classic top-down tank duels and Bomberman-style arenas (MIT-friendly mechanics; not code copies of any specific repo).
 
-**Face-Off Snake** adapts [bibhuticoder/snake.io](https://github.com/bibhuticoder/snake.io) (MIT) into a 2-player face-off — see `src/snake/NOTICE.md`.
+**Face-Off Snake** adapts [bibhuticoder/snake.io](https://github.com/bibhuticoder/snake.io) (MIT) into a widescreen arena with bots, camera follow / split-screen, minimap, and a live leaderboard — see `src/snake/NOTICE.md`.
 
 ## Quick start (local)
 

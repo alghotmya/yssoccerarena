@@ -3,11 +3,11 @@ import { AudioManager } from '../game/audio'
 import { FACE_PATHS } from '../game/constants'
 import { InputManager } from '../game/input'
 import { attachMatchNet, requestOnlineRematch } from '../net/matchNet'
+import { BOT_COUNT } from '../snake/constants'
 import { SnakeEngine } from '../snake/engine'
 import { SnakeRenderer } from '../snake/renderer'
-import type { SnakeSettings, SnakeSnapshot } from '../snake/types'
+import type { LeaderRow, SnakeSettings, SnakeSnapshot } from '../snake/types'
 import type { OnlineSession } from '../types'
-import { Scoreboard } from './Scoreboard'
 
 interface SnakeCanvasProps {
   settings: SnakeSettings
@@ -21,12 +21,14 @@ const emptySnapshot: SnakeSnapshot = {
   countdown: 3,
   score1: 0,
   score2: 0,
-  length1: 14,
-  length2: 14,
+  length1: 12,
+  length2: 12,
   expression1: 'happy',
   expression2: 'happy',
   winner: null,
-  lastHit: null,
+  leaderboard: [],
+  aliveBots: BOT_COUNT,
+  totalBots: BOT_COUNT,
 }
 
 export function SnakeCanvas({ settings, online = null, onNewGame, onChangeGame }: SnakeCanvasProps) {
@@ -44,15 +46,16 @@ export function SnakeCanvas({ settings, online = null, onNewGame, onChangeGame }
     audio.resume()
     const input = new InputManager()
     const renderer = new SnakeRenderer(canvas)
+    renderer.focusSeat = online?.seat ?? 1
+    renderer.splitScreen = !online
     let disposed = false
     let drawRaf = 0
     let detachNet: (() => void) | undefined
 
     const engine = new SnakeEngine(settings, input, {
-      onSnapshot: (next) => setSnapshot({ ...next }),
+      onSnapshot: (next) => setSnapshot({ ...next, leaderboard: next.leaderboard.map((r) => ({ ...r })) }),
       onEat: () => audio.play('coin'),
       onHit: () => audio.play('hit'),
-      onKo: () => audio.play('goal'),
       onWin: () => audio.play('win'),
       onTick: (value) => {
         if (value > 0) audio.play('countdown')
@@ -102,29 +105,40 @@ export function SnakeCanvas({ settings, online = null, onNewGame, onChangeGame }
   }
 
   const winnerName = snapshot.winner === 1 ? settings.player1Name : settings.player2Name
+  const board = snapshot.leaderboard
 
   return (
-    <div className="game-shell">
-      <Scoreboard
-        name1={settings.player1Name}
-        name2={settings.player2Name}
-        score1={snapshot.score1}
-        score2={snapshot.score2}
-        pulse={snapshot.phase === 'ko'}
-        winningScore={settings.winningScore}
-      />
-
-      <div className="snake-hud">
-        <span>
-          {settings.player1Name}: {snapshot.length1} long
-        </span>
-        <span>
-          {settings.player2Name}: {snapshot.length2} long
-        </span>
+    <div className="game-shell snake-shell">
+      <div className="snake-topbar">
+        <div className="snake-kill-card p1">
+          <img src={FACE_PATHS[1][snapshot.expression1]} alt="" />
+          <div>
+            <strong>{settings.player1Name}</strong>
+            <span>
+              {snapshot.score1} kills · {snapshot.length1} long
+            </span>
+          </div>
+        </div>
+        <div className="snake-match-meta">
+          <p className="snake-meta-title">Face-Off Snake</p>
+          <p>
+            First to {settings.winningScore} kills · {snapshot.aliveBots}/{snapshot.totalBots} bots
+            live
+          </p>
+        </div>
+        <div className="snake-kill-card p2">
+          <div>
+            <strong>{settings.player2Name}</strong>
+            <span>
+              {snapshot.score2} kills · {snapshot.length2} long
+            </span>
+          </div>
+          <img src={FACE_PATHS[2][snapshot.expression2]} alt="" />
+        </div>
       </div>
 
-      <div className="canvas-wrap">
-        <canvas ref={canvasRef} className="game-canvas" />
+      <div className="canvas-wrap snake-wide">
+        <canvas ref={canvasRef} className="game-canvas snake-canvas" />
         {peerLeft && <div className="peer-left-banner">Opponent disconnected</div>}
         {snapshot.phase === 'gameover' && snapshot.winner && (
           <div className="overlay gameover">
@@ -134,24 +148,15 @@ export function SnakeCanvas({ settings, online = null, onNewGame, onChangeGame }
               </div>
               <h2>{winnerName} Wins!</h2>
               <p className="final-score">
-                {snapshot.score1} — {snapshot.score2}
+                {snapshot.score1} — {snapshot.score2} kills
               </p>
-              <div className="gameover-faces">
-                <div className="portrait-card red">
-                  <img src={FACE_PATHS[1][snapshot.winner === 1 ? 'happy' : 'sad']} alt="" />
-                  <span>{settings.player1Name}</span>
-                </div>
-                <div className="portrait-card blue">
-                  <img src={FACE_PATHS[2][snapshot.winner === 2 ? 'happy' : 'sad']} alt="" />
-                  <span>{settings.player2Name}</span>
-                </div>
-              </div>
+              <LeaderList rows={board} />
               <div className="gameover-actions">
                 <button type="button" className="btn primary" onClick={restart}>
                   Rematch
                 </button>
                 <button type="button" className="btn" onClick={onNewGame}>
-                  New Slither
+                  New Arena
                 </button>
                 <button type="button" className="btn ghost" onClick={onChangeGame}>
                   All Games
@@ -165,13 +170,13 @@ export function SnakeCanvas({ settings, online = null, onNewGame, onChangeGame }
       <div className="match-toolbar">
         <p className="hint-bar">
           {online
-            ? `Online · Player ${online.seat} · Arrows steer · Space boost (local)`
-            : 'Red: WASD + Space boost  |  Blue: Arrows + Enter boost  |  Hit wall or body = KO'}
+            ? `Online · Player ${online.seat} · Arrows steer · Space boost · Bots fill the room`
+            : 'Split-screen arena · Red WASD+Space · Blue Arrows+Enter · Crash bodies / eat pellets · Bots join automatically'}
         </p>
         <div className="toolbar-actions">
           {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (
             <button type="button" className="btn" onClick={restart}>
-              Restart Match
+              Restart Arena
             </button>
           )}
           <button type="button" className="btn ghost" onClick={onChangeGame}>
@@ -180,5 +185,22 @@ export function SnakeCanvas({ settings, online = null, onNewGame, onChangeGame }
         </div>
       </div>
     </div>
+  )
+}
+
+function LeaderList({ rows }: { rows: LeaderRow[] }) {
+  if (rows.length === 0) return null
+  return (
+    <ol className="snake-final-board">
+      {rows.slice(0, 5).map((row, i) => (
+        <li key={row.uid}>
+          <span style={{ color: row.color }}>
+            {i + 1}. {row.kind === 'bot' ? '🤖 ' : ''}
+            {row.name}
+          </span>
+          <span>{row.length}</span>
+        </li>
+      ))}
+    </ol>
   )
 }

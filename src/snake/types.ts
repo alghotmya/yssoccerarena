@@ -7,7 +7,8 @@ export interface SnakeSettings {
   soundEnabled: boolean
 }
 
-export type SnakePhase = 'countdown' | 'battle' | 'ko' | 'gameover'
+export type SnakePhase = 'countdown' | 'battle' | 'gameover'
+export type WormKind = 'human' | 'bot'
 
 export interface Segment {
   x: number
@@ -22,17 +23,38 @@ export interface SnakeFood {
 }
 
 export interface Worm {
-  id: PlayerId
+  /** Unique id across humans + bots */
+  uid: string
+  /** 1 | 2 for humans; 0 for bots */
+  seat: 0 | PlayerId
+  kind: WormKind
+  name: string
   segments: Segment[]
   angle: number
   size: number
-  score: number
+  /** Kill count */
+  kills: number
   expression: Expression
   alive: boolean
   boost: boolean
   color: string
   midColor: string
   invuln: number
+  respawnIn: number
+  /** Bot wandering */
+  aiTimer: number
+  aiTurn: number
+}
+
+export interface LeaderRow {
+  uid: string
+  name: string
+  kind: WormKind
+  length: number
+  kills: number
+  color: string
+  alive: boolean
+  you?: boolean
 }
 
 export interface SnakeSnapshot {
@@ -45,5 +67,7 @@ export interface SnakeSnapshot {
   expression1: Expression
   expression2: Expression
   winner: PlayerId | null
-  lastHit: PlayerId | null
+  leaderboard: LeaderRow[]
+  aliveBots: number
+  totalBots: number
 }

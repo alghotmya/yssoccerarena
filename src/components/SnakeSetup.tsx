@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FACE_PATHS } from '../game/constants'
-import { SCORE_OPTIONS } from '../snake/constants'
+import { BOT_COUNT, SCORE_OPTIONS } from '../snake/constants'
 import type { SnakeSettings } from '../snake/types'
 
 interface SnakeSetupProps {
@@ -20,9 +20,11 @@ export function SnakeSetup({ initial, onStart, onOnline, onBack }: SnakeSetupPro
     <div className="start-screen">
       <div className="start-glow" />
       <header className="start-hero">
-        <p className="eyebrow">Slither duel</p>
+        <p className="eyebrow">Open arena</p>
         <h1>Face-Off Snake</h1>
-        <p className="subtitle">Eat pellets. Grow long. Crash your rival’s body to score.</p>
+        <p className="subtitle">
+          Widescreen snake.io arena — you, a rival, and {BOT_COUNT} bots. Climb the leaderboard.
+        </p>
       </header>
 
       <div className="start-portraits">
@@ -61,7 +63,7 @@ export function SnakeSetup({ initial, onStart, onOnline, onBack }: SnakeSetupPro
         </div>
 
         <fieldset className="score-picker">
-          <legend>First to</legend>
+          <legend>First to kills</legend>
           <div className="score-options">
             {SCORE_OPTIONS.map((n) => (
               <button
@@ -110,8 +112,13 @@ export function SnakeSetup({ initial, onStart, onOnline, onBack }: SnakeSetupPro
           </div>
         </div>
 
+        <p className="online-hint">
+          Bots auto-join the room. Eat pellets, grow, crash rivals. Leaderboard ranks everyone by
+          length.
+        </p>
+
         <button type="submit" className="btn primary mega">
-          Local Slither
+          Enter Arena
         </button>
         {onOnline && (
           <button
@@ -126,7 +133,7 @@ export function SnakeSetup({ initial, onStart, onOnline, onBack }: SnakeSetupPro
               })
             }
           >
-            Play Online
+            Play Online (+ bots)
           </button>
         )}
         <button type="button" className="btn ghost wide" onClick={onBack}>

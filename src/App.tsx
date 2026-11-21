@@ -71,7 +71,7 @@ const defaultBombs: BombsSettings = {
 const defaultSnake: SnakeSettings = {
   player1Name: 'Player 1',
   player2Name: 'Player 2',
-  winningScore: 5,
+  winningScore: 10,
   soundEnabled: true,
 }
 
