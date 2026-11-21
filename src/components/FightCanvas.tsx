@@ -168,7 +168,7 @@ export function FightCanvas({ settings, online = null, onNewGame, onChangeGame }
       <div className="match-toolbar">
         <p className="hint-bar">
           {online
-            ? `Online · You are Player ${online.seat} · WASD · W jump · Space punch · S kick`
+            ? `Online · You are Player ${online.seat} · Arrows · ↑ jump · Space punch · Left Shift kick`
             : 'Red: A D, W jump, Space punch, S kick  |  Blue: Arrows, Enter punch, Down kick'}
         </p>
         <div className="toolbar-actions">

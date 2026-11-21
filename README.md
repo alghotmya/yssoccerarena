@@ -21,7 +21,7 @@ Open the Vite URL (usually `http://localhost:5173`).
 | Player 1 (Red) | `W` `A` `S` `D` | `Space` (game-specific) |
 | Player 2 (Blue) | Arrow keys | `Enter` (game-specific) |
 
-Online: each player uses **WASD + Space** on their own machine (fight also uses hold `W` jump / `S` kick).
+Online: each player uses **Arrow keys + Space** on their own machine (fight also uses hold `↑` jump / `Left Shift` kick).
 
 ## Online multiplayer (AWS · ca-central-1)
 

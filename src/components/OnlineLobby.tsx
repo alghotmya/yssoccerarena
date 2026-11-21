@@ -228,8 +228,8 @@ export function OnlineLobby({
         </button>
 
         <p className="online-hint">
-          Online controls: <strong>WASD</strong> move · <strong>Space</strong> action
-          {game === 'fight' ? ' · hold W jump · S kick' : ''}
+          Online controls: <strong>Arrow keys</strong> move · <strong>Space</strong> action
+          {game === 'fight' ? ' · hold ↑ jump · Left Shift kick' : ''}
         </p>
       </div>
     </div>

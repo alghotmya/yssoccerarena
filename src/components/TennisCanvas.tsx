@@ -156,7 +156,7 @@ export function TennisCanvas({ settings, online = null, onNewGame, onChangeGame 
       <div className="match-toolbar">
         <p className="hint-bar">
           {online
-            ? `Online · Player ${online.seat} · ${serverName} serves · WASD + Space`
+            ? `Online · Player ${online.seat} · ${serverName} serves · Arrows + Space`
             : `${serverName} serves  |  Red: WASD + Space  |  Blue: Arrows + Enter`}
         </p>
         <div className="toolbar-actions">

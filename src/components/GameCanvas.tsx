@@ -169,7 +169,7 @@ export function GameCanvas({
       <div className="match-toolbar">
         <p className="hint-bar">
           {online
-            ? `Online · You are Player ${online.seat} · Room ${online.roomCode} · WASD + Space`
+            ? `Online · You are Player ${online.seat} · Room ${online.roomCode} · Arrows + Space`
             : 'Red: WASD + Space  |  Blue: Arrows + Enter'}
         </p>
         <div className="toolbar-actions">

@@ -7,6 +7,7 @@ const BLOCKED_CODES = new Set([
   'ArrowLeft',
   'ArrowRight',
   'Enter',
+  'ShiftLeft',
 ])
 
 type LocalMode = 'both' | Seat
@@ -15,7 +16,7 @@ export class InputManager {
   private pressed = new Set<string>()
   private justPressed = new Set<string>()
   private enabled = false
-  /** `both` = local couch co-op. Seat number = online local player uses P1 keys. */
+  /** `both` = local couch co-op. Seat number = online local player uses arrows. */
   localMode: LocalMode = 'both'
   private remote: NetInputFrame = { move: { x: 0, y: 0 }, jump: false, a: false, b: false }
   private remoteActionA = false
@@ -48,13 +49,13 @@ export class InputManager {
     this.remoteActionB = false
   }
 
-  /** Snapshot of local controls to send over the network (always P1 bindings). */
+  /** Snapshot of local controls to send over the network (online: arrows + Space + Left Shift). */
   sampleLocalNetInput(): NetInputFrame {
     return {
-      move: this.keyboardP1Move(),
-      jump: this.isDown('KeyW'),
+      move: this.keyboardOnlineMove(),
+      jump: this.isDown('ArrowUp'),
       a: this.justPressed.has('Space'),
-      b: this.justPressed.has('KeyS'),
+      b: this.justPressed.has('ShiftLeft'),
     }
   }
 
@@ -102,7 +103,7 @@ export class InputManager {
     if (this.localMode === 'both') {
       return seat === 1 ? this.isDown('KeyW') : this.isDown('ArrowUp')
     }
-    if (seat === this.localMode) return this.isDown('KeyW')
+    if (seat === this.localMode) return this.isDown('ArrowUp')
     return Boolean(this.remote.jump)
   }
 
@@ -124,7 +125,7 @@ export class InputManager {
         ? this.consumeJustPressed('KeyS')
         : this.consumeJustPressed('ArrowDown')
     }
-    if (seat === this.localMode) return this.consumeJustPressed('KeyS')
+    if (seat === this.localMode) return this.consumeJustPressed('ShiftLeft')
     if (!this.remoteActionB) return false
     this.remoteActionB = false
     return true
@@ -134,8 +135,18 @@ export class InputManager {
     if (this.localMode === 'both') {
       return seat === 1 ? this.keyboardP1Move() : this.keyboardP2Move()
     }
-    if (seat === this.localMode) return this.keyboardP1Move()
+    if (seat === this.localMode) return this.keyboardOnlineMove()
     return { ...this.remote.move }
+  }
+
+  private keyboardOnlineMove(): { x: number; y: number } {
+    let x = 0
+    let y = 0
+    if (this.isDown('ArrowLeft')) x -= 1
+    if (this.isDown('ArrowRight')) x += 1
+    if (this.isDown('ArrowUp')) y -= 1
+    if (this.isDown('ArrowDown')) y += 1
+    return normalize(x, y)
   }
 
   private keyboardP1Move(): { x: number; y: number } {
@@ -149,13 +160,7 @@ export class InputManager {
   }
 
   private keyboardP2Move(): { x: number; y: number } {
-    let x = 0
-    let y = 0
-    if (this.isDown('ArrowLeft')) x -= 1
-    if (this.isDown('ArrowRight')) x += 1
-    if (this.isDown('ArrowUp')) y -= 1
-    if (this.isDown('ArrowDown')) y += 1
-    return normalize(x, y)
+    return this.keyboardOnlineMove()
   }
 
   private onKeyDown(e: KeyboardEvent) {
