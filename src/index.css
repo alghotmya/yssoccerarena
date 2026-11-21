@@ -486,6 +486,10 @@ input:focus-visible {
   background: linear-gradient(160deg, #4a6b8a, #2a3a58);
 }
 
+.game-card.bombs {
+  background: linear-gradient(160deg, #c45a2a, #6a2048);
+}
+
 .tanks-hud {
   width: min(1280px, 100%);
   display: grid;

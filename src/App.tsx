@@ -7,11 +7,14 @@ import { OnlineLobby } from './components/OnlineLobby'
 import { StartScreen } from './components/StartScreen'
 import { SpearCanvas } from './components/SpearCanvas'
 import { SpearSetup } from './components/SpearSetup'
+import { BombsCanvas } from './components/BombsCanvas'
+import { BombsSetup } from './components/BombsSetup'
 import { TanksCanvas } from './components/TanksCanvas'
 import { TanksSetup } from './components/TanksSetup'
 import { TennisCanvas } from './components/TennisCanvas'
 import { TennisSetup } from './components/TennisSetup'
 import { VersusScreen } from './components/VersusScreen'
+import type { BombsSettings } from './bombs/types'
 import type { FightSettings } from './fight/types'
 import type { GameKind } from './net/protocol'
 import type { SpearSettings } from './spear/types'
@@ -54,6 +57,13 @@ const defaultTanks: TanksSettings = {
   soundEnabled: true,
 }
 
+const defaultBombs: BombsSettings = {
+  player1Name: 'Player 1',
+  player2Name: 'Player 2',
+  winningScore: 5,
+  soundEnabled: true,
+}
+
 type Screen =
   | 'pick'
   | 'soccer-setup'
@@ -76,6 +86,10 @@ type Screen =
   | 'tanks-online'
   | 'tanks-vs'
   | 'tanks-match'
+  | 'bombs-setup'
+  | 'bombs-online'
+  | 'bombs-vs'
+  | 'bombs-match'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('pick')
@@ -84,6 +98,7 @@ export default function App() {
   const [tennis, setTennis] = useState<TennisSettings>(defaultTennis)
   const [spear, setSpear] = useState<SpearSettings>(defaultSpear)
   const [tanks, setTanks] = useState<TanksSettings>(defaultTanks)
+  const [bombs, setBombs] = useState<BombsSettings>(defaultBombs)
   const [matchKey, setMatchKey] = useState(0)
   const [online, setOnline] = useState<OnlineSession | null>(null)
 
@@ -113,6 +128,9 @@ export default function App() {
     } else if (game === 'tanks') {
       setTanks({ ...defaultTanks, ...(settings as Partial<TanksSettings>) })
       setScreen('tanks-match')
+    } else if (game === 'bombs') {
+      setBombs({ ...defaultBombs, ...(settings as Partial<BombsSettings>) })
+      setScreen('bombs-match')
     } else {
       setSpear({ ...defaultSpear, ...(settings as Partial<SpearSettings>) })
       setScreen('spear-match')
@@ -128,6 +146,7 @@ export default function App() {
           onTennis={() => beginLocal('tennis-setup')}
           onSpear={() => beginLocal('spear-setup')}
           onTanks={() => beginLocal('tanks-setup')}
+          onBombs={() => beginLocal('bombs-setup')}
         />
       )}
       {screen === 'soccer-setup' && (
@@ -392,6 +411,59 @@ export default function App() {
           onNewGame={() => {
             clearOnline()
             setScreen('tanks-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
+        />
+      )}
+      {screen === 'bombs-setup' && (
+        <BombsSetup
+          initial={bombs}
+          onBack={() => setScreen('pick')}
+          onStart={(next) => {
+            setBombs(next)
+            clearOnline()
+            setScreen('bombs-vs')
+          }}
+          onOnline={(next) => {
+            setBombs(next)
+            setScreen('bombs-online')
+          }}
+        />
+      )}
+      {screen === 'bombs-online' && (
+        <OnlineLobby
+          game="bombs"
+          gameTitle="Face-Off Bombs"
+          defaultName={bombs.player1Name}
+          settings={bombs as unknown as Record<string, unknown>}
+          onBack={() => setScreen('bombs-setup')}
+          onReady={(session, settings) => beginOnlineMatch('bombs', session, settings)}
+        />
+      )}
+      {screen === 'bombs-vs' && (
+        <VersusScreen
+          title="Face-Off Bombs"
+          player1Name={bombs.player1Name}
+          player2Name={bombs.player2Name}
+          soundEnabled={bombs.soundEnabled}
+          onBack={() => setScreen('bombs-setup')}
+          onStart={() => {
+            setMatchKey((k) => k + 1)
+            setScreen('bombs-match')
+          }}
+        />
+      )}
+      {screen === 'bombs-match' && (
+        <BombsCanvas
+          key={matchKey}
+          settings={bombs}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('bombs-setup')
           }}
           onChangeGame={() => {
             clearOnline()

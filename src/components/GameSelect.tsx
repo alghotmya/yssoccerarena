@@ -9,9 +9,10 @@ interface GameSelectProps {
   onTennis: () => void
   onSpear: () => void
   onTanks: () => void
+  onBombs: () => void
 }
 
-export function GameSelect({ onSoccer, onFight, onTennis, onSpear, onTanks }: GameSelectProps) {
+export function GameSelect({ onSoccer, onFight, onTennis, onSpear, onTanks, onBombs }: GameSelectProps) {
   const audio = useRef(new AudioManager())
   const choose = (play: () => void) => {
     audio.current.resume()
@@ -68,6 +69,13 @@ export function GameSelect({ onSoccer, onFight, onTennis, onSpear, onTanks }: Ga
           </span>
           <strong>Face-Off Tanks</strong>
           <span>Drive, aim, and blast. First to the target wins!</span>
+        </button>
+        <button type="button" className="game-card bombs" onClick={() => choose(onBombs)}>
+          <span className="game-emoji" aria-hidden>
+            💣
+          </span>
+          <strong>Face-Off Bombs</strong>
+          <span>Plant bombs, crack crates, blast your rival!</span>
         </button>
       </div>
     </div>
