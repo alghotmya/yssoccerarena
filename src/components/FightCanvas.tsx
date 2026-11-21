@@ -169,7 +169,7 @@ export function FightCanvas({ settings, online = null, onNewGame, onChangeGame }
         <p className="hint-bar">
           {online
             ? `Online · You are Player ${online.seat} · Arrows · ↑ jump · Space punch · Left Shift kick`
-            : 'Red: A D, W jump, Space punch, S kick  |  Blue: Arrows, Enter punch, Down kick'}
+            : 'Red (P1): Arrows · ↑ jump · Space punch · ↓ kick  |  Blue (P2): WASD · W jump · Enter punch · S kick'}
         </p>
         <div className="toolbar-actions">
           {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (

@@ -89,10 +89,10 @@ export function SnakeSetup({ initial, onStart, onOnline, onBack }: SnakeSetupPro
 
         <div className="controls-guide">
           <div className="controls-card controls-p1">
-            <h3>Player 1 — Red</h3>
+            <h3>Player 1 — Red (default)</h3>
             <ul>
               <li>
-                <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Steer
+                <kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> Steer
               </li>
               <li>
                 <kbd>Space</kbd> Boost
@@ -100,10 +100,10 @@ export function SnakeSetup({ initial, onStart, onOnline, onBack }: SnakeSetupPro
             </ul>
           </div>
           <div className="controls-card controls-p2">
-            <h3>Player 2 — Blue</h3>
+            <h3>Player 2 — Blue (local join)</h3>
             <ul>
               <li>
-                <kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> Steer
+                <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Steer
               </li>
               <li>
                 <kbd>Enter</kbd> Boost

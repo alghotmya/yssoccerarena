@@ -180,8 +180,8 @@ export function RumbleCanvas({ settings, online = null, onNewGame, onChangeGame 
       <div className="match-toolbar">
         <p className="hint-bar">
           {online
-            ? `Online · Player ${online.seat} · Arrows move · Space punch · ↓ kick · F special · hold back block`
-            : 'Red: WASD · Space punch · S kick · F special  |  Blue: Arrows · Enter punch · ↓ kick · L special  |  Hold back to block'}
+            ? `Online · Player ${online.seat} · Arrows move · Space punch · Shift kick · F special · hold back block`
+            : 'P1 Arrows · Space punch · ↓ kick · F special  |  P2 WASD · Enter punch · S kick · L special  |  Hold back to block'}
         </p>
         <div className="toolbar-actions">
           {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (

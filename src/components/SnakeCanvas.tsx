@@ -171,7 +171,7 @@ export function SnakeCanvas({ settings, online = null, onNewGame, onChangeGame }
         <p className="hint-bar">
           {online
             ? `Online · Player ${online.seat} · Arrows steer · Space boost · Bots fill the room`
-            : 'Split-screen arena · Red WASD+Space · Blue Arrows+Enter · Crash bodies / eat pellets · Bots join automatically'}
+            : 'P1 Arrows+Space · P2 local WASD+Enter · Crash bodies / eat pellets · Bots join automatically'}
         </p>
         <div className="toolbar-actions">
           {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (

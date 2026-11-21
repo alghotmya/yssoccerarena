@@ -157,7 +157,7 @@ export function TennisCanvas({ settings, online = null, onNewGame, onChangeGame 
         <p className="hint-bar">
           {online
             ? `Online · Player ${online.seat} · ${serverName} serves · Arrows + Space`
-            : `${serverName} serves  |  Red: WASD + Space  |  Blue: Arrows + Enter`}
+            : `${serverName} serves  |  Red (P1): Arrows + Space  |  Blue (P2): WASD + Enter`}
         </p>
         <div className="toolbar-actions">
           {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (

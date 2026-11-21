@@ -265,7 +265,8 @@ export function OnlineLobby({
         </button>
 
         <p className="online-hint">
-          Online controls: <strong>Arrow keys</strong> move · <strong>Space</strong> action
+          Online: each player uses <strong>Arrow keys</strong> · <strong>Space</strong> action · local P2 uses
+          WASD when couch co-op
           {game === 'fight' ? ' · hold ↑ jump · Left Shift kick' : ''}
         </p>
       </div>

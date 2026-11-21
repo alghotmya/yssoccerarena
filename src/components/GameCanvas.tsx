@@ -170,7 +170,7 @@ export function GameCanvas({
         <p className="hint-bar">
           {online
             ? `Online · You are Player ${online.seat} · Room ${online.roomCode} · Arrows + Space`
-            : 'Red: WASD + Space  |  Blue: Arrows + Enter'}
+            : 'Red (P1): Arrows + Space  |  Blue (P2 local): WASD + Enter'}
         </p>
         <div className="toolbar-actions">
           {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (

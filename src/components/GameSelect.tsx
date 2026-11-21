@@ -45,7 +45,9 @@ export function GameSelect({
           alt="Player 1 versus Player 2"
         />
         <h1>Choose your game</h1>
-        <p className="subtitle">Red on the left. Blue on the right. One keyboard.</p>
+        <p className="subtitle">
+          Red on the left (arrows). Blue joins local with WASD. Online: arrows for everyone.
+        </p>
       </header>
       <div className="game-pick">
         <button type="button" className="game-card soccer" onClick={() => choose(onSoccer)}>

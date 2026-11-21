@@ -89,15 +89,15 @@ export function SpearSetup({ initial, onStart, onOnline, onBack }: SpearSetupPro
 
         <div className="controls-guide">
           <div className="controls-card controls-p1">
-            <h3>Player 1 — Red</h3>
+            <h3>Player 1 — Red (default)</h3>
             <ul>
               <li>
-                <kbd>Space</kbd> Throw
+                <kbd>Space</kbd> Throw · online uses arrows seat + Space
               </li>
             </ul>
           </div>
           <div className="controls-card controls-p2">
-            <h3>Player 2 — Blue</h3>
+            <h3>Player 2 — Blue (local join)</h3>
             <ul>
               <li>
                 <kbd>Enter</kbd> Throw

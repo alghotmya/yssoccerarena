@@ -87,21 +87,7 @@ export function FightSetup({ initial, onStart, onOnline, onBack }: FightSetupPro
 
         <div className="controls-guide">
           <div className="controls-card controls-p1">
-            <h3>Player 1 — Red</h3>
-            <ul>
-              <li>
-                <kbd>A</kbd> <kbd>D</kbd> Move
-              </li>
-              <li>
-                <kbd>W</kbd> Jump
-              </li>
-              <li>
-                <kbd>Space</kbd> Punch &nbsp; <kbd>S</kbd> Kick
-              </li>
-            </ul>
-          </div>
-          <div className="controls-card controls-p2">
-            <h3>Player 2 — Blue</h3>
+            <h3>Player 1 — Red (default)</h3>
             <ul>
               <li>
                 <kbd>←</kbd> <kbd>→</kbd> Move
@@ -110,7 +96,21 @@ export function FightSetup({ initial, onStart, onOnline, onBack }: FightSetupPro
                 <kbd>↑</kbd> Jump
               </li>
               <li>
-                <kbd>Enter</kbd> Punch &nbsp; <kbd>↓</kbd> Kick
+                <kbd>Space</kbd> Punch &nbsp; <kbd>↓</kbd> Kick
+              </li>
+            </ul>
+          </div>
+          <div className="controls-card controls-p2">
+            <h3>Player 2 — Blue (local join)</h3>
+            <ul>
+              <li>
+                <kbd>A</kbd> <kbd>D</kbd> Move
+              </li>
+              <li>
+                <kbd>W</kbd> Jump
+              </li>
+              <li>
+                <kbd>Enter</kbd> Punch &nbsp; <kbd>S</kbd> Kick
               </li>
             </ul>
           </div>

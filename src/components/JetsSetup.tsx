@@ -85,10 +85,10 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
 
         <div className="controls-guide">
           <div className="controls-card controls-p1">
-            <h3>Local Pilot 1 — Red</h3>
+            <h3>Pilot 1 — Red (default)</h3>
             <ul>
               <li>
-                <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Fly · auto-fire
+                <kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> Fly · auto-fire
               </li>
               <li>
                 <kbd>B</kbd> / <kbd>Shift</kbd> Smart bomb
@@ -96,13 +96,13 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
             </ul>
           </div>
           <div className="controls-card controls-p2">
-            <h3>Local Pilot 2 / Online</h3>
+            <h3>Pilot 2 — Blue (local join)</h3>
             <ul>
               <li>
-                <kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> Fly · auto-fire
+                <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Fly · auto-fire
               </li>
               <li>
-                Online: <strong>both</strong> use arrows · <kbd>Shift</kbd> bomb
+                Online: each player uses arrows · <kbd>Shift</kbd> bomb
               </li>
             </ul>
           </div>

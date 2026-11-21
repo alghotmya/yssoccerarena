@@ -89,24 +89,24 @@ export function RumbleSetup({ initial, onStart, onOnline, onBack }: RumbleSetupP
 
         <div className="controls-guide">
           <div className="controls-card controls-p1">
-            <h3>Player 1 — Red</h3>
-            <ul>
-              <li>
-                <kbd>A</kbd> <kbd>D</kbd> Move · <kbd>W</kbd> Jump · hold back to block
-              </li>
-              <li>
-                <kbd>Space</kbd> Punch · <kbd>S</kbd> Kick · <kbd>F</kbd> Special
-              </li>
-            </ul>
-          </div>
-          <div className="controls-card controls-p2">
-            <h3>Player 2 — Blue</h3>
+            <h3>Player 1 — Red (default)</h3>
             <ul>
               <li>
                 <kbd>←</kbd> <kbd>→</kbd> Move · <kbd>↑</kbd> Jump · hold back to block
               </li>
               <li>
-                <kbd>Enter</kbd> Punch · <kbd>↓</kbd> Kick · <kbd>L</kbd> Special
+                <kbd>Space</kbd> Punch · <kbd>↓</kbd> Kick · <kbd>F</kbd> Special
+              </li>
+            </ul>
+          </div>
+          <div className="controls-card controls-p2">
+            <h3>Player 2 — Blue (local join)</h3>
+            <ul>
+              <li>
+                <kbd>A</kbd> <kbd>D</kbd> Move · <kbd>W</kbd> Jump · hold back to block
+              </li>
+              <li>
+                <kbd>Enter</kbd> Punch · <kbd>S</kbd> Kick · <kbd>L</kbd> Special
               </li>
             </ul>
           </div>

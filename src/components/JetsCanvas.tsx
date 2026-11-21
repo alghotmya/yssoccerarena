@@ -230,8 +230,8 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
       <div className="match-toolbar">
         <p className="hint-bar">
           {online
-            ? `Online co-op · Both players: Arrow keys fly · Shift smart bomb · auto-fire`
-            : 'Local: WASD / Arrows fly · auto-fire · B or Shift bomb · grab W H R S B L P M C'}
+            ? `Online co-op · Each player: Arrow keys fly · Shift smart bomb · auto-fire`
+            : 'P1 Arrows fly · P2 local WASD · auto-fire · B or Shift bomb · grab W H R S B L P M C'}
         </p>
         <div className="toolbar-actions">
           {!ended && (!online || online.seat === 1) && (
