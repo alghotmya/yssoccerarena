@@ -32,6 +32,7 @@ type GameKind =
   | 'bombs'
   | 'snake'
   | 'rumble'
+  | 'jets'
 type Seat = 1 | 2
 
 interface RoomItem {

@@ -7,6 +7,7 @@ export type GameKind =
   | 'bombs'
   | 'snake'
   | 'rumble'
+  | 'jets'
 export type Seat = 1 | 2
 
 export interface NetInputFrame {

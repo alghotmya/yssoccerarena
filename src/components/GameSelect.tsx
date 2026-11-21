@@ -12,6 +12,7 @@ interface GameSelectProps {
   onBombs: () => void
   onSnake: () => void
   onRumble: () => void
+  onJets: () => void
 }
 
 export function GameSelect({
@@ -23,6 +24,7 @@ export function GameSelect({
   onBombs,
   onSnake,
   onRumble,
+  onJets,
 }: GameSelectProps) {
   const audio = useRef(new AudioManager())
   const choose = (play: () => void) => {
@@ -101,6 +103,13 @@ export function GameSelect({
           </span>
           <strong>Face-Off Rumble</strong>
           <span>Punch, kick, blast — neon Street Fighter vibes!</span>
+        </button>
+        <button type="button" className="game-card jets" onClick={() => choose(onJets)}>
+          <span className="game-emoji" aria-hidden>
+            ✈️
+          </span>
+          <strong>Face-Off Jets</strong>
+          <span>10 sectors, bosses & weapon upgrades — shoot everything!</span>
         </button>
       </div>
     </div>

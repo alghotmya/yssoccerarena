@@ -9,6 +9,8 @@ import { SpearCanvas } from './components/SpearCanvas'
 import { SpearSetup } from './components/SpearSetup'
 import { BombsCanvas } from './components/BombsCanvas'
 import { BombsSetup } from './components/BombsSetup'
+import { JetsCanvas } from './components/JetsCanvas'
+import { JetsSetup } from './components/JetsSetup'
 import { RumbleCanvas } from './components/RumbleCanvas'
 import { RumbleSetup } from './components/RumbleSetup'
 import { SnakeCanvas } from './components/SnakeCanvas'
@@ -21,6 +23,7 @@ import { VersusScreen } from './components/VersusScreen'
 import type { BombsSettings } from './bombs/types'
 import type { FightSettings } from './fight/types'
 import type { GameKind } from './net/protocol'
+import type { JetsSettings } from './jets/types'
 import type { RumbleSettings } from './rumble/types'
 import type { SnakeSettings } from './snake/types'
 import type { SpearSettings } from './spear/types'
@@ -85,6 +88,13 @@ const defaultRumble: RumbleSettings = {
   soundEnabled: true,
 }
 
+const defaultJets: JetsSettings = {
+  player1Name: 'Player 1',
+  player2Name: 'Player 2',
+  coop: false,
+  soundEnabled: true,
+}
+
 type Screen =
   | 'pick'
   | 'soccer-setup'
@@ -119,6 +129,10 @@ type Screen =
   | 'rumble-online'
   | 'rumble-vs'
   | 'rumble-match'
+  | 'jets-setup'
+  | 'jets-online'
+  | 'jets-vs'
+  | 'jets-match'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('pick')
@@ -130,6 +144,7 @@ export default function App() {
   const [bombs, setBombs] = useState<BombsSettings>(defaultBombs)
   const [snake, setSnake] = useState<SnakeSettings>(defaultSnake)
   const [rumble, setRumble] = useState<RumbleSettings>(defaultRumble)
+  const [jets, setJets] = useState<JetsSettings>(defaultJets)
   const [matchKey, setMatchKey] = useState(0)
   const [online, setOnline] = useState<OnlineSession | null>(null)
 
@@ -171,6 +186,9 @@ export default function App() {
     } else if (game === 'rumble') {
       setRumble({ ...defaultRumble, ...(settings as Partial<RumbleSettings>) })
       setScreen('rumble-match')
+    } else if (game === 'jets') {
+      setJets({ ...defaultJets, coop: true, ...(settings as Partial<JetsSettings>) })
+      setScreen('jets-match')
     } else {
       setSpear({ ...defaultSpear, ...(settings as Partial<SpearSettings>) })
       setScreen('spear-match')
@@ -189,6 +207,7 @@ export default function App() {
           onBombs={() => beginLocal('bombs-setup')}
           onSnake={() => beginLocal('snake-setup')}
           onRumble={() => beginLocal('rumble-setup')}
+          onJets={() => beginLocal('jets-setup')}
         />
       )}
       {screen === 'soccer-setup' && (
@@ -612,6 +631,59 @@ export default function App() {
           onNewGame={() => {
             clearOnline()
             setScreen('rumble-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
+        />
+      )}
+      {screen === 'jets-setup' && (
+        <JetsSetup
+          initial={jets}
+          onBack={() => setScreen('pick')}
+          onStart={(next) => {
+            setJets(next)
+            clearOnline()
+            setScreen('jets-vs')
+          }}
+          onOnline={(next) => {
+            setJets(next)
+            setScreen('jets-online')
+          }}
+        />
+      )}
+      {screen === 'jets-online' && (
+        <OnlineLobby
+          game="jets"
+          gameTitle="Face-Off Jets"
+          defaultName={jets.player1Name}
+          settings={jets as unknown as Record<string, unknown>}
+          onBack={() => setScreen('jets-setup')}
+          onReady={(session, settings) => beginOnlineMatch('jets', session, settings)}
+        />
+      )}
+      {screen === 'jets-vs' && (
+        <VersusScreen
+          title="Face-Off Jets"
+          player1Name={jets.player1Name}
+          player2Name={jets.coop ? jets.player2Name : 'Campaign'}
+          soundEnabled={jets.soundEnabled}
+          onBack={() => setScreen('jets-setup')}
+          onStart={() => {
+            setMatchKey((k) => k + 1)
+            setScreen('jets-match')
+          }}
+        />
+      )}
+      {screen === 'jets-match' && (
+        <JetsCanvas
+          key={matchKey}
+          settings={jets}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('jets-setup')
           }}
           onChangeGame={() => {
             clearOnline()
