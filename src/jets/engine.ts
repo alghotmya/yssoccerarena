@@ -76,7 +76,7 @@ export class JetsEngine {
   private introTimer = 0
   private clearedTimer = 0
   private toastTimer = 0
-  private scrollX = 0
+  scrollX = 0
   private hitsThisLevel = 0
   private comboDecay = 0
   networkRole: 'local' | 'host' | 'guest' = 'local'
@@ -862,12 +862,12 @@ export class JetsEngine {
 
   private makeStars() {
     this.stars = []
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 120; i++) {
       this.stars.push({
         x: Math.random() * ARENA_WIDTH,
         y: Math.random() * ARENA_HEIGHT,
-        speed: 0.6 + Math.random() * 2.4,
-        size: 1 + Math.random() * 2,
+        speed: 0.55 + Math.random() * 2.8,
+        size: 1 + Math.random() * 2.4,
       })
     }
   }
