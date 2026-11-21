@@ -8,9 +8,10 @@ interface GameSelectProps {
   onFight: () => void
   onTennis: () => void
   onSpear: () => void
+  onTanks: () => void
 }
 
-export function GameSelect({ onSoccer, onFight, onTennis, onSpear }: GameSelectProps) {
+export function GameSelect({ onSoccer, onFight, onTennis, onSpear, onTanks }: GameSelectProps) {
   const audio = useRef(new AudioManager())
   const choose = (play: () => void) => {
     audio.current.resume()
@@ -60,6 +61,13 @@ export function GameSelect({ onSoccer, onFight, onTennis, onSpear }: GameSelectP
           </span>
           <strong>Spear Arcade</strong>
           <span>Take turns. Hit the body, arm, or leg!</span>
+        </button>
+        <button type="button" className="game-card tanks" onClick={() => choose(onTanks)}>
+          <span className="game-emoji" aria-hidden>
+            💥
+          </span>
+          <strong>Face-Off Tanks</strong>
+          <span>Drive, aim, and blast. First to the target wins!</span>
         </button>
       </div>
     </div>

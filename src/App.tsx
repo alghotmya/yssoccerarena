@@ -7,12 +7,15 @@ import { OnlineLobby } from './components/OnlineLobby'
 import { StartScreen } from './components/StartScreen'
 import { SpearCanvas } from './components/SpearCanvas'
 import { SpearSetup } from './components/SpearSetup'
+import { TanksCanvas } from './components/TanksCanvas'
+import { TanksSetup } from './components/TanksSetup'
 import { TennisCanvas } from './components/TennisCanvas'
 import { TennisSetup } from './components/TennisSetup'
 import { VersusScreen } from './components/VersusScreen'
 import type { FightSettings } from './fight/types'
 import type { GameKind } from './net/protocol'
 import type { SpearSettings } from './spear/types'
+import type { TanksSettings } from './tanks/types'
 import type { TennisSettings } from './tennis/types'
 import type { MatchSettings, OnlineSession } from './types'
 
@@ -44,6 +47,13 @@ const defaultTennis: TennisSettings = {
   soundEnabled: true,
 }
 
+const defaultTanks: TanksSettings = {
+  player1Name: 'Player 1',
+  player2Name: 'Player 2',
+  winningScore: 5,
+  soundEnabled: true,
+}
+
 type Screen =
   | 'pick'
   | 'soccer-setup'
@@ -62,6 +72,10 @@ type Screen =
   | 'spear-online'
   | 'spear-vs'
   | 'spear-match'
+  | 'tanks-setup'
+  | 'tanks-online'
+  | 'tanks-vs'
+  | 'tanks-match'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('pick')
@@ -69,6 +83,7 @@ export default function App() {
   const [fight, setFight] = useState<FightSettings>(defaultFight)
   const [tennis, setTennis] = useState<TennisSettings>(defaultTennis)
   const [spear, setSpear] = useState<SpearSettings>(defaultSpear)
+  const [tanks, setTanks] = useState<TanksSettings>(defaultTanks)
   const [matchKey, setMatchKey] = useState(0)
   const [online, setOnline] = useState<OnlineSession | null>(null)
 
@@ -95,6 +110,9 @@ export default function App() {
     } else if (game === 'tennis') {
       setTennis({ ...defaultTennis, ...(settings as Partial<TennisSettings>) })
       setScreen('tennis-match')
+    } else if (game === 'tanks') {
+      setTanks({ ...defaultTanks, ...(settings as Partial<TanksSettings>) })
+      setScreen('tanks-match')
     } else {
       setSpear({ ...defaultSpear, ...(settings as Partial<SpearSettings>) })
       setScreen('spear-match')
@@ -109,6 +127,7 @@ export default function App() {
           onFight={() => beginLocal('fight-setup')}
           onTennis={() => beginLocal('tennis-setup')}
           onSpear={() => beginLocal('spear-setup')}
+          onTanks={() => beginLocal('tanks-setup')}
         />
       )}
       {screen === 'soccer-setup' && (
@@ -320,6 +339,59 @@ export default function App() {
           onNewGame={() => {
             clearOnline()
             setScreen('spear-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
+        />
+      )}
+      {screen === 'tanks-setup' && (
+        <TanksSetup
+          initial={tanks}
+          onBack={() => setScreen('pick')}
+          onStart={(next) => {
+            setTanks(next)
+            clearOnline()
+            setScreen('tanks-vs')
+          }}
+          onOnline={(next) => {
+            setTanks(next)
+            setScreen('tanks-online')
+          }}
+        />
+      )}
+      {screen === 'tanks-online' && (
+        <OnlineLobby
+          game="tanks"
+          gameTitle="Face-Off Tanks"
+          defaultName={tanks.player1Name}
+          settings={tanks as unknown as Record<string, unknown>}
+          onBack={() => setScreen('tanks-setup')}
+          onReady={(session, settings) => beginOnlineMatch('tanks', session, settings)}
+        />
+      )}
+      {screen === 'tanks-vs' && (
+        <VersusScreen
+          title="Face-Off Tanks"
+          player1Name={tanks.player1Name}
+          player2Name={tanks.player2Name}
+          soundEnabled={tanks.soundEnabled}
+          onBack={() => setScreen('tanks-setup')}
+          onStart={() => {
+            setMatchKey((k) => k + 1)
+            setScreen('tanks-match')
+          }}
+        />
+      )}
+      {screen === 'tanks-match' && (
+        <TanksCanvas
+          key={matchKey}
+          settings={tanks}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('tanks-setup')
           }}
           onChangeGame={() => {
             clearOnline()

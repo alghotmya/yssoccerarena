@@ -482,6 +482,55 @@ input:focus-visible {
   background: linear-gradient(160deg, #c4472a, #7a1f4a);
 }
 
+.game-card.tanks {
+  background: linear-gradient(160deg, #4a6b8a, #2a3a58);
+}
+
+.tanks-hud {
+  width: min(1280px, 100%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 10px;
+}
+
+.tank-health {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(18, 8, 28, 0.55);
+  border: 1px solid var(--line);
+}
+
+.tank-health.p2 {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.tank-health img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff6d8;
+}
+
+.tank-health .health-track {
+  width: min(180px, 28vw);
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.tank-health .health-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff3d6e, #ffd23f);
+}
+
 .game-card:hover {
   transform: translateY(-3px);
 }

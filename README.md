@@ -1,6 +1,8 @@
 # Face-Off Soccer (Arcade)
 
-Local + online 2-player arcade suite for the browser: soccer, fight, tennis, and spear. Mix of air hockey speed, shuffleboard-style kicks, and stick-figure face reactions.
+Local + online 2-player arcade suite for the browser: soccer, fight, tennis, spear, and tanks. Mix of air hockey speed, shuffleboard-style kicks, and stick-figure face reactions.
+
+**Face-Off Tanks** is an original arcade take inspired by classic top-down tank duels (MIT-friendly mechanics; not a code copy of any specific repo).
 
 ## Quick start (local)
 
