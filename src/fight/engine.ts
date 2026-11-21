@@ -50,6 +50,7 @@ export class FightEngine {
   private accumulator = 0
   private koTimer = 0
   private lastCountdownInt = -1
+  networkRole: 'local' | 'host' | 'guest' = 'local'
 
   constructor(
     settings: FightSettings,
@@ -108,12 +109,14 @@ export class FightEngine {
     if (!this.running) return
     const elapsed = Math.min(0.05, (now - this.lastTime) / 1000)
     this.lastTime = now
-    this.accumulator += elapsed
-    while (this.accumulator >= PHYSICS_DT) {
-      this.step(PHYSICS_DT)
-      this.accumulator -= PHYSICS_DT
+    if (this.networkRole !== 'guest') {
+      this.accumulator += elapsed
+      while (this.accumulator >= PHYSICS_DT) {
+        this.step(PHYSICS_DT)
+        this.accumulator -= PHYSICS_DT
+      }
+      this.input.endFrame()
     }
-    this.input.endFrame()
     this.raf = requestAnimationFrame(this.frame)
   }
 
@@ -153,8 +156,22 @@ export class FightEngine {
 
     if (this.phase !== 'fighting') return
 
-    this.control(this.p1, this.input.getPlayer1Move(), this.input.isDown('KeyW'), this.input.consumeJustPressed('Space'), this.input.consumeJustPressed('KeyS'), dt)
-    this.control(this.p2, this.input.getPlayer2Move(), this.input.isDown('ArrowUp'), this.input.consumeJustPressed('Enter'), this.input.consumeJustPressed('ArrowDown'), dt)
+    this.control(
+      this.p1,
+      this.input.getPlayer1Move(),
+      this.input.seatJumpHeld(1),
+      this.input.seatActionA(1),
+      this.input.seatActionB(1),
+      dt,
+    )
+    this.control(
+      this.p2,
+      this.input.getPlayer2Move(),
+      this.input.seatJumpHeld(2),
+      this.input.seatActionA(2),
+      this.input.seatActionB(2),
+      dt,
+    )
     this.integrate(this.p1, dt)
     this.integrate(this.p2, dt)
     this.separate()
@@ -320,6 +337,29 @@ export class FightEngine {
       winner: this.winner,
       lastHit: this.lastHit,
     }
+  }
+
+  exportNetworkState() {
+    return {
+      phase: this.phase,
+      countdown: this.countdown,
+      winner: this.winner,
+      lastHit: this.lastHit,
+      koTimer: this.koTimer,
+      p1: { ...this.p1 },
+      p2: { ...this.p2 },
+    }
+  }
+
+  applyNetworkState(state: ReturnType<FightEngine['exportNetworkState']>) {
+    this.phase = state.phase
+    this.countdown = state.countdown
+    this.winner = state.winner
+    this.lastHit = state.lastHit
+    this.koTimer = state.koTimer
+    Object.assign(this.p1, state.p1)
+    Object.assign(this.p2, state.p2)
+    this.emit()
   }
 }
 

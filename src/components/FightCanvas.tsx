@@ -6,9 +6,12 @@ import { MAX_HEALTH } from '../fight/constants'
 import { FightEngine } from '../fight/engine'
 import { FightRenderer } from '../fight/renderer'
 import type { FightSettings, FightSnapshot } from '../fight/types'
+import { attachMatchNet, requestOnlineRematch } from '../net/matchNet'
+import type { OnlineSession } from '../types'
 
 interface FightCanvasProps {
   settings: FightSettings
+  online?: OnlineSession | null
   onNewGame: () => void
   onChangeGame: () => void
 }
@@ -26,11 +29,12 @@ const emptySnapshot: FightSnapshot = {
   lastHit: null,
 }
 
-export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasProps) {
+export function FightCanvas({ settings, online = null, onNewGame, onChangeGame }: FightCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<FightEngine | null>(null)
   const audioRef = useRef(new AudioManager())
   const [snapshot, setSnapshot] = useState<FightSnapshot>(emptySnapshot)
+  const [peerLeft, setPeerLeft] = useState(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -42,6 +46,7 @@ export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasPr
     const renderer = new FightRenderer(canvas)
     let disposed = false
     let drawRaf = 0
+    let detachNet: (() => void) | undefined
 
     const engine = new FightEngine(settings, input, {
       onSnapshot: (next) => setSnapshot({ ...next }),
@@ -59,6 +64,15 @@ export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasPr
 
     void renderer.loadFaces().then(() => {
       if (disposed) return
+      if (online) {
+        detachNet = attachMatchNet({
+          seat: online.seat,
+          input,
+          engine: engine as never,
+          onPeerLeft: () => setPeerLeft(true),
+          onRematch: () => setSnapshot(engine.getSnapshot()),
+        })
+      }
       engine.start()
       const loop = () => {
         if (disposed) return
@@ -70,15 +84,21 @@ export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasPr
 
     return () => {
       disposed = true
+      detachNet?.()
       cancelAnimationFrame(drawRaf)
       engine.stop()
       engineRef.current = null
     }
-  }, [settings])
+  }, [settings, online])
 
   const restart = () => {
     audioRef.current.resume()
-    engineRef.current?.rematch()
+    if (online?.seat === 1) {
+      requestOnlineRematch()
+      engineRef.current?.rematch()
+    } else if (!online) {
+      engineRef.current?.rematch()
+    }
     setSnapshot(engineRef.current?.getSnapshot() ?? emptySnapshot)
   }
 
@@ -108,6 +128,7 @@ export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasPr
 
       <div className="canvas-wrap">
         <canvas ref={canvasRef} className="game-canvas" />
+        {peerLeft && <div className="peer-left-banner">Opponent disconnected</div>}
         {snapshot.phase === 'gameover' && snapshot.winner && (
           <div className="overlay gameover">
             <div className="gameover-card">
@@ -145,9 +166,13 @@ export function FightCanvas({ settings, onNewGame, onChangeGame }: FightCanvasPr
       </div>
 
       <div className="match-toolbar">
-        <p className="hint-bar">Red: A D, W jump, Space punch, S kick &nbsp;|&nbsp; Blue: Arrows, Enter punch, Down kick</p>
+        <p className="hint-bar">
+          {online
+            ? `Online · You are Player ${online.seat} · WASD · W jump · Space punch · S kick`
+            : 'Red: A D, W jump, Space punch, S kick  |  Blue: Arrows, Enter punch, Down kick'}
+        </p>
         <div className="toolbar-actions">
-          {snapshot.phase !== 'gameover' && (
+          {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (
             <button type="button" className="btn" onClick={restart}>
               Restart Match
             </button>

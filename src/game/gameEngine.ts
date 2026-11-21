@@ -83,6 +83,8 @@ export class GameEngine {
   private wallSfxCooldown = 0
   private lastCountdownInt = -1
   private goalLocked = false
+  /** Host runs physics; guest only applies networked state. */
+  networkRole: 'local' | 'host' | 'guest' = 'local'
 
   constructor(settings: MatchSettings, input: InputManager, callbacks: EngineCallbacks) {
     this.settings = settings
@@ -131,8 +133,14 @@ export class GameEngine {
     if (!this.running) return
     const elapsed = Math.min(0.05, (now - this.lastTime) / 1000)
     this.lastTime = now
-    this.accumulator += elapsed
 
+    if (this.networkRole === 'guest') {
+      this.updateVisuals(elapsed)
+      this.raf = requestAnimationFrame(this.frame)
+      return
+    }
+
+    this.accumulator += elapsed
     while (this.accumulator >= PHYSICS_DT) {
       this.fixedUpdate(PHYSICS_DT)
       this.accumulator -= PHYSICS_DT
@@ -197,11 +205,58 @@ export class GameEngine {
   }
 
   private updatePlayers(dt: number, canKick: boolean) {
-    this.stepPlayer(this.player1, this.input.getPlayer1Move(), canKick && this.input.consumeJustPressed('Space'), dt)
-    this.stepPlayer(this.player2, this.input.getPlayer2Move(), canKick && this.input.consumeJustPressed('Enter'), dt)
+    this.stepPlayer(
+      this.player1,
+      this.input.getPlayer1Move(),
+      canKick && this.input.seatActionA(1),
+      dt,
+    )
+    this.stepPlayer(
+      this.player2,
+      this.input.getPlayer2Move(),
+      canKick && this.input.seatActionA(2),
+      dt,
+    )
     resolvePlayerPlayer(this.player1, this.player2)
     clampPlayer(this.player1)
     clampPlayer(this.player2)
+  }
+
+  exportNetworkState() {
+    return {
+      phase: this.phase,
+      countdown: this.countdown,
+      score1: this.score1,
+      score2: this.score2,
+      lastScorer: this.lastScorer,
+      spectacular: this.spectacular,
+      goalCelebrationTimer: this.goalCelebrationTimer,
+      expression1: this.expression1,
+      expression2: this.expression2,
+      winner: this.winner,
+      nearMissFlash: this.nearMissFlash,
+      ball: { ...this.ball },
+      player1: { ...this.player1 },
+      player2: { ...this.player2 },
+    }
+  }
+
+  applyNetworkState(state: ReturnType<GameEngine['exportNetworkState']>) {
+    this.phase = state.phase
+    this.countdown = state.countdown
+    this.score1 = state.score1
+    this.score2 = state.score2
+    this.lastScorer = state.lastScorer
+    this.spectacular = state.spectacular
+    this.goalCelebrationTimer = state.goalCelebrationTimer
+    this.expression1 = state.expression1
+    this.expression2 = state.expression2
+    this.winner = state.winner
+    this.nearMissFlash = state.nearMissFlash
+    Object.assign(this.ball, state.ball)
+    Object.assign(this.player1, state.player1)
+    Object.assign(this.player2, state.player2)
+    this.emitSnapshot()
   }
 
   private stepPlayer(

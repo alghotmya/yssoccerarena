@@ -3,6 +3,7 @@ import { FightCanvas } from './components/FightCanvas'
 import { FightSetup } from './components/FightSetup'
 import { GameCanvas } from './components/GameCanvas'
 import { GameSelect } from './components/GameSelect'
+import { OnlineLobby } from './components/OnlineLobby'
 import { StartScreen } from './components/StartScreen'
 import { SpearCanvas } from './components/SpearCanvas'
 import { SpearSetup } from './components/SpearSetup'
@@ -10,9 +11,10 @@ import { TennisCanvas } from './components/TennisCanvas'
 import { TennisSetup } from './components/TennisSetup'
 import { VersusScreen } from './components/VersusScreen'
 import type { FightSettings } from './fight/types'
+import type { GameKind } from './net/protocol'
 import type { SpearSettings } from './spear/types'
 import type { TennisSettings } from './tennis/types'
-import type { MatchSettings } from './types'
+import type { MatchSettings, OnlineSession } from './types'
 
 const defaultSoccer: MatchSettings = {
   player1Name: 'Player 1',
@@ -45,15 +47,19 @@ const defaultTennis: TennisSettings = {
 type Screen =
   | 'pick'
   | 'soccer-setup'
+  | 'soccer-online'
   | 'soccer-vs'
   | 'soccer-match'
   | 'fight-setup'
+  | 'fight-online'
   | 'fight-vs'
   | 'fight-match'
   | 'tennis-setup'
+  | 'tennis-online'
   | 'tennis-vs'
   | 'tennis-match'
   | 'spear-setup'
+  | 'spear-online'
   | 'spear-vs'
   | 'spear-match'
 
@@ -64,15 +70,45 @@ export default function App() {
   const [tennis, setTennis] = useState<TennisSettings>(defaultTennis)
   const [spear, setSpear] = useState<SpearSettings>(defaultSpear)
   const [matchKey, setMatchKey] = useState(0)
+  const [online, setOnline] = useState<OnlineSession | null>(null)
+
+  const clearOnline = () => setOnline(null)
+
+  const beginLocal = (next: Screen) => {
+    clearOnline()
+    setScreen(next)
+  }
+
+  const beginOnlineMatch = (
+    game: GameKind,
+    session: OnlineSession,
+    settings: Record<string, unknown>,
+  ) => {
+    setOnline(session)
+    setMatchKey((k) => k + 1)
+    if (game === 'soccer') {
+      setSoccer({ ...defaultSoccer, ...(settings as Partial<MatchSettings>) })
+      setScreen('soccer-match')
+    } else if (game === 'fight') {
+      setFight({ ...defaultFight, ...(settings as Partial<FightSettings>) })
+      setScreen('fight-match')
+    } else if (game === 'tennis') {
+      setTennis({ ...defaultTennis, ...(settings as Partial<TennisSettings>) })
+      setScreen('tennis-match')
+    } else {
+      setSpear({ ...defaultSpear, ...(settings as Partial<SpearSettings>) })
+      setScreen('spear-match')
+    }
+  }
 
   return (
     <div className="app">
       {screen === 'pick' && (
         <GameSelect
-          onSoccer={() => setScreen('soccer-setup')}
-          onFight={() => setScreen('fight-setup')}
-          onTennis={() => setScreen('tennis-setup')}
-          onSpear={() => setScreen('spear-setup')}
+          onSoccer={() => beginLocal('soccer-setup')}
+          onFight={() => beginLocal('fight-setup')}
+          onTennis={() => beginLocal('tennis-setup')}
+          onSpear={() => beginLocal('spear-setup')}
         />
       )}
       {screen === 'soccer-setup' && (
@@ -81,8 +117,23 @@ export default function App() {
           onBack={() => setScreen('pick')}
           onStart={(next) => {
             setSoccer(next)
+            clearOnline()
             setScreen('soccer-vs')
           }}
+          onOnline={(next) => {
+            setSoccer(next)
+            setScreen('soccer-online')
+          }}
+        />
+      )}
+      {screen === 'soccer-online' && (
+        <OnlineLobby
+          game="soccer"
+          gameTitle="Face-Off Soccer"
+          defaultName={soccer.player1Name}
+          settings={soccer as unknown as Record<string, unknown>}
+          onBack={() => setScreen('soccer-setup')}
+          onReady={(session, settings) => beginOnlineMatch('soccer', session, settings)}
         />
       )}
       {screen === 'soccer-vs' && (
@@ -102,9 +153,19 @@ export default function App() {
         <GameCanvas
           key={matchKey}
           settings={soccer}
-          onNewGame={() => setScreen('soccer-setup')}
-          onChangePlayers={() => setScreen('soccer-setup')}
-          onChangeGame={() => setScreen('pick')}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('soccer-setup')
+          }}
+          onChangePlayers={() => {
+            clearOnline()
+            setScreen('soccer-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
         />
       )}
       {screen === 'fight-setup' && (
@@ -113,8 +174,23 @@ export default function App() {
           onBack={() => setScreen('pick')}
           onStart={(next) => {
             setFight(next)
+            clearOnline()
             setScreen('fight-vs')
           }}
+          onOnline={(next) => {
+            setFight(next)
+            setScreen('fight-online')
+          }}
+        />
+      )}
+      {screen === 'fight-online' && (
+        <OnlineLobby
+          game="fight"
+          gameTitle="Stickman Fight"
+          defaultName={fight.player1Name}
+          settings={fight as unknown as Record<string, unknown>}
+          onBack={() => setScreen('fight-setup')}
+          onReady={(session, settings) => beginOnlineMatch('fight', session, settings)}
         />
       )}
       {screen === 'fight-vs' && (
@@ -134,8 +210,15 @@ export default function App() {
         <FightCanvas
           key={matchKey}
           settings={fight}
-          onNewGame={() => setScreen('fight-setup')}
-          onChangeGame={() => setScreen('pick')}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('fight-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
         />
       )}
       {screen === 'tennis-setup' && (
@@ -144,8 +227,23 @@ export default function App() {
           onBack={() => setScreen('pick')}
           onStart={(next) => {
             setTennis(next)
+            clearOnline()
             setScreen('tennis-vs')
           }}
+          onOnline={(next) => {
+            setTennis(next)
+            setScreen('tennis-online')
+          }}
+        />
+      )}
+      {screen === 'tennis-online' && (
+        <OnlineLobby
+          game="tennis"
+          gameTitle="Volley Arcade"
+          defaultName={tennis.player1Name}
+          settings={tennis as unknown as Record<string, unknown>}
+          onBack={() => setScreen('tennis-setup')}
+          onReady={(session, settings) => beginOnlineMatch('tennis', session, settings)}
         />
       )}
       {screen === 'tennis-vs' && (
@@ -165,8 +263,15 @@ export default function App() {
         <TennisCanvas
           key={matchKey}
           settings={tennis}
-          onNewGame={() => setScreen('tennis-setup')}
-          onChangeGame={() => setScreen('pick')}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('tennis-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
         />
       )}
       {screen === 'spear-setup' && (
@@ -175,8 +280,23 @@ export default function App() {
           onBack={() => setScreen('pick')}
           onStart={(next) => {
             setSpear(next)
+            clearOnline()
             setScreen('spear-vs')
           }}
+          onOnline={(next) => {
+            setSpear(next)
+            setScreen('spear-online')
+          }}
+        />
+      )}
+      {screen === 'spear-online' && (
+        <OnlineLobby
+          game="spear"
+          gameTitle="Spear Arcade"
+          defaultName={spear.player1Name}
+          settings={spear as unknown as Record<string, unknown>}
+          onBack={() => setScreen('spear-setup')}
+          onReady={(session, settings) => beginOnlineMatch('spear', session, settings)}
         />
       )}
       {screen === 'spear-vs' && (
@@ -196,8 +316,15 @@ export default function App() {
         <SpearCanvas
           key={matchKey}
           settings={spear}
-          onNewGame={() => setScreen('spear-setup')}
-          onChangeGame={() => setScreen('pick')}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('spear-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
         />
       )}
     </div>

@@ -6,9 +6,12 @@ import { Scoreboard } from './Scoreboard'
 import { TennisEngine } from '../tennis/engine'
 import { TennisRenderer } from '../tennis/renderer'
 import type { TennisSettings, TennisSnapshot } from '../tennis/types'
+import { attachMatchNet, requestOnlineRematch } from '../net/matchNet'
+import type { OnlineSession } from '../types'
 
 interface TennisCanvasProps {
   settings: TennisSettings
+  online?: OnlineSession | null
   onNewGame: () => void
   onChangeGame: () => void
 }
@@ -25,11 +28,12 @@ const emptySnapshot: TennisSnapshot = {
   pointFor: null,
 }
 
-export function TennisCanvas({ settings, onNewGame, onChangeGame }: TennisCanvasProps) {
+export function TennisCanvas({ settings, online = null, onNewGame, onChangeGame }: TennisCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<TennisEngine | null>(null)
   const audioRef = useRef(new AudioManager())
   const [snapshot, setSnapshot] = useState<TennisSnapshot>(emptySnapshot)
+  const [peerLeft, setPeerLeft] = useState(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -41,6 +45,7 @@ export function TennisCanvas({ settings, onNewGame, onChangeGame }: TennisCanvas
     const renderer = new TennisRenderer(canvas)
     let disposed = false
     let drawRaf = 0
+    let detachNet: (() => void) | undefined
 
     const engine = new TennisEngine(settings, input, {
       onSnapshot: (next) => setSnapshot({ ...next }),
@@ -57,6 +62,15 @@ export function TennisCanvas({ settings, onNewGame, onChangeGame }: TennisCanvas
 
     void renderer.loadFaces().then(() => {
       if (disposed) return
+      if (online) {
+        detachNet = attachMatchNet({
+          seat: online.seat,
+          input,
+          engine: engine as never,
+          onPeerLeft: () => setPeerLeft(true),
+          onRematch: () => setSnapshot(engine.getSnapshot()),
+        })
+      }
       engine.start()
       const loop = () => {
         if (disposed) return
@@ -68,15 +82,21 @@ export function TennisCanvas({ settings, onNewGame, onChangeGame }: TennisCanvas
 
     return () => {
       disposed = true
+      detachNet?.()
       cancelAnimationFrame(drawRaf)
       engine.stop()
       engineRef.current = null
     }
-  }, [settings])
+  }, [settings, online])
 
   const restart = () => {
     audioRef.current.resume()
-    engineRef.current?.rematch()
+    if (online?.seat === 1) {
+      requestOnlineRematch()
+      engineRef.current?.rematch()
+    } else if (!online) {
+      engineRef.current?.rematch()
+    }
     setSnapshot(engineRef.current?.getSnapshot() ?? emptySnapshot)
   }
 
@@ -96,6 +116,7 @@ export function TennisCanvas({ settings, onNewGame, onChangeGame }: TennisCanvas
 
       <div className="canvas-wrap">
         <canvas ref={canvasRef} className="game-canvas" />
+        {peerLeft && <div className="peer-left-banner">Opponent disconnected</div>}
         {snapshot.phase === 'gameover' && snapshot.winner && (
           <div className="overlay gameover">
             <div className="gameover-card">
@@ -134,10 +155,12 @@ export function TennisCanvas({ settings, onNewGame, onChangeGame }: TennisCanvas
 
       <div className="match-toolbar">
         <p className="hint-bar">
-          {serverName} serves &nbsp;|&nbsp; Red: WASD + Space &nbsp;|&nbsp; Blue: Arrows + Enter
+          {online
+            ? `Online · Player ${online.seat} · ${serverName} serves · WASD + Space`
+            : `${serverName} serves  |  Red: WASD + Space  |  Blue: Arrows + Enter`}
         </p>
         <div className="toolbar-actions">
-          {snapshot.phase !== 'gameover' && (
+          {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (
             <button type="button" className="btn" onClick={restart}>
               Restart Match
             </button>

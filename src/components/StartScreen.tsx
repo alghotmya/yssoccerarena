@@ -6,10 +6,11 @@ import { ControlsGuide } from './ControlsGuide'
 interface StartScreenProps {
   initial: MatchSettings
   onStart: (settings: MatchSettings) => void
+  onOnline?: (settings: MatchSettings) => void
   onBack: () => void
 }
 
-export function StartScreen({ initial, onStart, onBack }: StartScreenProps) {
+export function StartScreen({ initial, onStart, onOnline, onBack }: StartScreenProps) {
   const [player1Name, setPlayer1Name] = useState(initial.player1Name)
   const [player2Name, setPlayer2Name] = useState(initial.player2Name)
   const [winningScore, setWinningScore] = useState(initial.winningScore)
@@ -126,8 +127,24 @@ export function StartScreen({ initial, onStart, onBack }: StartScreenProps) {
         <ControlsGuide />
 
         <button type="submit" className="btn primary mega">
-          Start Match
+          Local Match
         </button>
+        {onOnline && (
+          <button
+            type="button"
+            className="btn wide"
+            onClick={() =>
+              onOnline({
+                player1Name: player1Name.trim() || 'Player 1',
+                player2Name: player2Name.trim() || 'Player 2',
+                winningScore: resolvedScore,
+                soundEnabled,
+              })
+            }
+          >
+            Play Online
+          </button>
+        )}
         <button type="button" className="btn ghost wide" onClick={onBack}>
           All Games
         </button>

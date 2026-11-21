@@ -54,6 +54,7 @@ export class TennisEngine {
   private lastCountdownInt = -1
   private hitLock = 0
   private lastHitter: PlayerId | null = null
+  networkRole: 'local' | 'host' | 'guest' = 'local'
 
   constructor(
     settings: TennisSettings,
@@ -115,12 +116,14 @@ export class TennisEngine {
     if (!this.running) return
     const elapsed = Math.min(0.05, (now - this.lastTime) / 1000)
     this.lastTime = now
-    this.accumulator += elapsed
-    while (this.accumulator >= PHYSICS_DT) {
-      this.step(PHYSICS_DT)
-      this.accumulator -= PHYSICS_DT
+    if (this.networkRole !== 'guest') {
+      this.accumulator += elapsed
+      while (this.accumulator >= PHYSICS_DT) {
+        this.step(PHYSICS_DT)
+        this.accumulator -= PHYSICS_DT
+      }
+      this.input.endFrame()
     }
-    this.input.endFrame()
     this.raf = requestAnimationFrame(this.frame)
   }
 
@@ -167,8 +170,8 @@ export class TennisEngine {
     const move2 = this.input.getPlayer2Move()
     this.move(this.p1, move1, dt)
     this.move(this.p2, move2, dt)
-    this.trySwing(this.p1, this.input.consumeJustPressed('Space'), move1.y)
-    this.trySwing(this.p2, this.input.consumeJustPressed('Enter'), move2.y)
+    this.trySwing(this.p1, this.input.seatActionA(1), move1.y)
+    this.trySwing(this.p2, this.input.seatActionA(2), move2.y)
 
     if (this.ball.held) {
       this.placeHeldBall()
@@ -354,6 +357,37 @@ export class TennisEngine {
       winner: this.winner,
       pointFor: this.pointFor,
     }
+  }
+
+  exportNetworkState() {
+    return {
+      phase: this.phase,
+      countdown: this.countdown,
+      server: this.server,
+      winner: this.winner,
+      pointFor: this.pointFor,
+      pointTimer: this.pointTimer,
+      hitLock: this.hitLock,
+      lastHitter: this.lastHitter,
+      p1: { ...this.p1 },
+      p2: { ...this.p2 },
+      ball: { ...this.ball },
+    }
+  }
+
+  applyNetworkState(state: ReturnType<TennisEngine['exportNetworkState']>) {
+    this.phase = state.phase
+    this.countdown = state.countdown
+    this.server = state.server
+    this.winner = state.winner
+    this.pointFor = state.pointFor
+    this.pointTimer = state.pointTimer
+    this.hitLock = state.hitLock
+    this.lastHitter = state.lastHitter
+    Object.assign(this.p1, state.p1)
+    Object.assign(this.p2, state.p2)
+    Object.assign(this.ball, state.ball)
+    this.emit()
   }
 }
 

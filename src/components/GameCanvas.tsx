@@ -3,13 +3,15 @@ import { AudioManager } from '../game/audio'
 import { GameEngine } from '../game/gameEngine'
 import { InputManager } from '../game/input'
 import { Renderer } from '../game/renderer'
-import type { GameSnapshot, MatchSettings, PlayerId } from '../types'
+import { attachMatchNet, requestOnlineRematch } from '../net/matchNet'
+import type { GameSnapshot, MatchSettings, OnlineSession, PlayerId } from '../types'
 import { GoalCelebration } from './GoalCelebration'
 import { GameOverScreen } from './GameOverScreen'
 import { Scoreboard } from './Scoreboard'
 
 interface GameCanvasProps {
   settings: MatchSettings
+  online?: OnlineSession | null
   onNewGame: () => void
   onChangePlayers: () => void
   onChangeGame?: () => void
@@ -29,12 +31,19 @@ const emptySnapshot: GameSnapshot = {
   nearMissFlash: 0,
 }
 
-export function GameCanvas({ settings, onNewGame, onChangePlayers, onChangeGame }: GameCanvasProps) {
+export function GameCanvas({
+  settings,
+  online = null,
+  onNewGame,
+  onChangePlayers,
+  onChangeGame,
+}: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const engineRef = useRef<GameEngine | null>(null)
   const audioRef = useRef(new AudioManager())
   const [snapshot, setSnapshot] = useState<GameSnapshot>(emptySnapshot)
   const [scorePulse, setScorePulse] = useState(false)
+  const [peerLeft, setPeerLeft] = useState(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -48,6 +57,7 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers, onChangeGame 
     const renderer = new Renderer(canvas)
     let disposed = false
     let drawRaf = 0
+    let detachNet: (() => void) | undefined
 
     const engine = new GameEngine(settings, input, {
       onGoal: () => {
@@ -76,6 +86,15 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers, onChangeGame 
 
     void renderer.loadFaces().then(() => {
       if (disposed) return
+      if (online) {
+        detachNet = attachMatchNet({
+          seat: online.seat,
+          input,
+          engine: engine as never,
+          onPeerLeft: () => setPeerLeft(true),
+          onRematch: () => setSnapshot(engine.getSnapshot()),
+        })
+      }
       engine.start()
       const loop = () => {
         if (disposed) return
@@ -87,15 +106,21 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers, onChangeGame 
 
     return () => {
       disposed = true
+      detachNet?.()
       cancelAnimationFrame(drawRaf)
       engine.stop()
       engineRef.current = null
     }
-  }, [settings])
+  }, [settings, online])
 
   const handleRematch = () => {
     audioRef.current.resume()
-    engineRef.current?.rematch()
+    if (online?.seat === 1) {
+      requestOnlineRematch()
+      engineRef.current?.rematch()
+    } else if (!online) {
+      engineRef.current?.rematch()
+    }
     setSnapshot(engineRef.current?.getSnapshot() ?? emptySnapshot)
   }
 
@@ -112,6 +137,9 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers, onChangeGame 
 
       <div className="canvas-wrap">
         <canvas ref={canvasRef} className="game-canvas" />
+        {peerLeft && (
+          <div className="peer-left-banner">Opponent disconnected</div>
+        )}
         {snapshot.phase === 'goal' && (
           <GoalCelebration
             scorer={snapshot.lastScorer}
@@ -139,9 +167,13 @@ export function GameCanvas({ settings, onNewGame, onChangePlayers, onChangeGame 
       </div>
 
       <div className="match-toolbar">
-        <p className="hint-bar">Red: WASD + Space &nbsp;|&nbsp; Blue: Arrows + Enter</p>
+        <p className="hint-bar">
+          {online
+            ? `Online · You are Player ${online.seat} · Room ${online.roomCode} · WASD + Space`
+            : 'Red: WASD + Space  |  Blue: Arrows + Enter'}
+        </p>
         <div className="toolbar-actions">
-          {snapshot.phase !== 'gameover' && (
+          {snapshot.phase !== 'gameover' && (!online || online.seat === 1) && (
             <button type="button" className="btn" onClick={handleRematch}>
               Restart Match
             </button>

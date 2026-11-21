@@ -1,3 +1,5 @@
+import type { NetInputFrame, Seat } from '../net/protocol'
+
 const BLOCKED_CODES = new Set([
   'Space',
   'ArrowUp',
@@ -7,15 +9,53 @@ const BLOCKED_CODES = new Set([
   'Enter',
 ])
 
+type LocalMode = 'both' | Seat
+
 export class InputManager {
   private pressed = new Set<string>()
   private justPressed = new Set<string>()
   private enabled = false
+  /** `both` = local couch co-op. Seat number = online local player uses P1 keys. */
+  localMode: LocalMode = 'both'
+  private remote: NetInputFrame = { move: { x: 0, y: 0 }, jump: false, a: false, b: false }
+  private remoteActionA = false
+  private remoteActionB = false
 
   constructor() {
     this.onKeyDown = this.onKeyDown.bind(this)
     this.onKeyUp = this.onKeyUp.bind(this)
     this.onBlur = this.onBlur.bind(this)
+  }
+
+  setLocalMode(mode: LocalMode) {
+    this.localMode = mode
+  }
+
+  applyRemoteInput(frame: NetInputFrame) {
+    this.remote = {
+      move: { x: frame.move?.x ?? 0, y: frame.move?.y ?? 0 },
+      jump: Boolean(frame.jump),
+      a: Boolean(frame.a),
+      b: Boolean(frame.b),
+    }
+    if (frame.a) this.remoteActionA = true
+    if (frame.b) this.remoteActionB = true
+  }
+
+  clearRemoteInput() {
+    this.remote = { move: { x: 0, y: 0 }, jump: false, a: false, b: false }
+    this.remoteActionA = false
+    this.remoteActionB = false
+  }
+
+  /** Snapshot of local controls to send over the network (always P1 bindings). */
+  sampleLocalNetInput(): NetInputFrame {
+    return {
+      move: this.keyboardP1Move(),
+      jump: this.isDown('KeyW'),
+      a: this.justPressed.has('Space'),
+      b: this.justPressed.has('KeyS'),
+    }
   }
 
   start() {
@@ -33,6 +73,7 @@ export class InputManager {
     window.removeEventListener('blur', this.onBlur)
     this.pressed.clear()
     this.justPressed.clear()
+    this.clearRemoteInput()
   }
 
   isDown(code: string) {
@@ -50,6 +91,54 @@ export class InputManager {
   }
 
   getPlayer1Move(): { x: number; y: number } {
+    return this.getSeatMove(1)
+  }
+
+  getPlayer2Move(): { x: number; y: number } {
+    return this.getSeatMove(2)
+  }
+
+  seatJumpHeld(seat: Seat) {
+    if (this.localMode === 'both') {
+      return seat === 1 ? this.isDown('KeyW') : this.isDown('ArrowUp')
+    }
+    if (seat === this.localMode) return this.isDown('KeyW')
+    return Boolean(this.remote.jump)
+  }
+
+  seatActionA(seat: Seat) {
+    if (this.localMode === 'both') {
+      return seat === 1
+        ? this.consumeJustPressed('Space')
+        : this.consumeJustPressed('Enter')
+    }
+    if (seat === this.localMode) return this.consumeJustPressed('Space')
+    if (!this.remoteActionA) return false
+    this.remoteActionA = false
+    return true
+  }
+
+  seatActionB(seat: Seat) {
+    if (this.localMode === 'both') {
+      return seat === 1
+        ? this.consumeJustPressed('KeyS')
+        : this.consumeJustPressed('ArrowDown')
+    }
+    if (seat === this.localMode) return this.consumeJustPressed('KeyS')
+    if (!this.remoteActionB) return false
+    this.remoteActionB = false
+    return true
+  }
+
+  private getSeatMove(seat: Seat) {
+    if (this.localMode === 'both') {
+      return seat === 1 ? this.keyboardP1Move() : this.keyboardP2Move()
+    }
+    if (seat === this.localMode) return this.keyboardP1Move()
+    return { ...this.remote.move }
+  }
+
+  private keyboardP1Move(): { x: number; y: number } {
     let x = 0
     let y = 0
     if (this.isDown('KeyA')) x -= 1
@@ -59,7 +148,7 @@ export class InputManager {
     return normalize(x, y)
   }
 
-  getPlayer2Move(): { x: number; y: number } {
+  private keyboardP2Move(): { x: number; y: number } {
     let x = 0
     let y = 0
     if (this.isDown('ArrowLeft')) x -= 1

@@ -6,10 +6,11 @@ import type { FightSettings } from '../fight/types'
 interface FightSetupProps {
   initial: FightSettings
   onStart: (settings: FightSettings) => void
+  onOnline?: (settings: FightSettings) => void
   onBack: () => void
 }
 
-export function FightSetup({ initial, onStart, onBack }: FightSetupProps) {
+export function FightSetup({ initial, onStart, onOnline, onBack }: FightSetupProps) {
   const [player1Name, setPlayer1Name] = useState(initial.player1Name)
   const [player2Name, setPlayer2Name] = useState(initial.player2Name)
   const [roundsToWin, setRoundsToWin] = useState(initial.roundsToWin)
@@ -116,8 +117,24 @@ export function FightSetup({ initial, onStart, onBack }: FightSetupProps) {
         </div>
 
         <button type="submit" className="btn primary mega">
-          Start Fight
+          Local Fight
         </button>
+        {onOnline && (
+          <button
+            type="button"
+            className="btn wide"
+            onClick={() =>
+              onOnline({
+                player1Name: player1Name.trim() || 'Player 1',
+                player2Name: player2Name.trim() || 'Player 2',
+                roundsToWin,
+                soundEnabled,
+              })
+            }
+          >
+            Play Online
+          </button>
+        )}
         <button type="button" className="btn ghost wide" onClick={onBack}>
           All Games
         </button>

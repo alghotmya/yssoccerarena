@@ -16,6 +16,11 @@ export interface MatchSettings {
   soundEnabled: boolean
 }
 
+export interface OnlineSession {
+  seat: PlayerId
+  roomCode: string
+}
+
 export interface Vec2 {
   x: number
   y: number

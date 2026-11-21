@@ -1,8 +1,8 @@
-# Face-Off Soccer
+# Face-Off Soccer (Arcade)
 
-Local 2-player arcade soccer for the browser. Mix of air hockey speed, shuffleboard-style kicks, and soccer scoring — with photographic stick-figure faces that react to the match.
+Local + online 2-player arcade suite for the browser: soccer, fight, tennis, and spear. Mix of air hockey speed, shuffleboard-style kicks, and stick-figure face reactions.
 
-## Quick start
+## Quick start (local)
 
 Requires **Node.js 20+** (22 recommended).
 
@@ -12,40 +12,62 @@ npm install
 npm run dev
 ```
 
-Then open the local URL Vite prints (usually `http://localhost:5173`).
+Open the Vite URL (usually `http://localhost:5173`).
 
-## Controls
+## Controls (local couch co-op)
 
-| Player | Move | Kick |
+| Player | Move | Action |
 |---|---|---|
-| Player 1 (Blue) | `W` `A` `S` `D` | `Space` |
-| Player 2 (Red) | Arrow keys | `Enter` |
+| Player 1 (Red) | `W` `A` `S` `D` | `Space` (game-specific) |
+| Player 2 (Blue) | Arrow keys | `Enter` (game-specific) |
 
-First player to the selected winning score wins.
+Online: each player uses **WASD + Space** on their own machine (fight also uses hold `W` jump / `S` kick).
+
+## Online multiplayer (AWS · ca-central-1)
+
+Stack: **API Gateway WebSocket + Lambda + DynamoDB** (relay), frontend on **Amplify Hosting**. Host runs physics; guest sends inputs and receives state snapshots.
+
+### 1. Deploy the WebSocket API
+
+```bash
+cd infra
+npm install
+npx cdk bootstrap aws://ACCOUNT_ID/ca-central-1
+npx cdk deploy
+```
+
+Copy the `WebSocketUrl` output (`wss://…/prod`).
+
+### 2. Local online testing
+
+```bash
+# repo root
+cp .env.example .env
+# paste VITE_WS_URL=wss://...
+npm run dev
+```
+
+Use **Play Online** on any game setup screen → create/join a room code.
+
+### 3. Amplify Hosting
+
+1. Connect this repo in Amplify (build uses `amplify.yml`).
+2. Set environment variable **`VITE_WS_URL`** to the CDK `WebSocketUrl`.
+3. Redeploy.
+
+**Do not commit AWS access keys.** Use `~/.aws/credentials` or Amplify/CI roles only.
 
 ## Player portraits
 
-Place face photos in `public/players/`:
-
-| File | Expression |
-|---|---|
-| `player1-happy.jpg` | Happy |
-| `player1-amazed.jpg` | Amazed |
-| `player1-angry.jpg` | Angry |
-| `player1-sad.jpg` | Sad |
-| `player2-happy.jpg` | Happy |
-| `player2-amazed.jpg` | Amazed |
-| `player2-angry.jpg` | Angry |
-| `player2-sad.jpg` | Sad |
-
-The game already ships with the current portraits. Replace any file with the same name to swap characters. Paths are configured in `src/game/constants.ts` (`FACE_PATHS`).
+Place face photos in `public/players/` (`player1-*.jpg` / `player2-*.jpg`). Paths live in `src/game/constants.ts`.
 
 ## Scripts
 
 - `npm run dev` — local development
 - `npm run build` — production build
-- `npm run preview` — preview the production build
+- `npm run preview` — preview production build
+- `cd infra && npx cdk deploy` — deploy multiplayer backend
 
 ## Tech
 
-React + TypeScript + Vite + HTML5 Canvas. Physics runs on a fixed timestep; the canvas draw loop is separate from React UI overlays.
+React + TypeScript + Vite + Canvas · AWS CDK (WebSocket API, Lambda, DynamoDB) · Amplify Hosting

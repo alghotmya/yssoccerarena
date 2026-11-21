@@ -6,10 +6,11 @@ import type { SpearSettings } from '../spear/types'
 interface SpearSetupProps {
   initial: SpearSettings
   onStart: (settings: SpearSettings) => void
+  onOnline?: (settings: SpearSettings) => void
   onBack: () => void
 }
 
-export function SpearSetup({ initial, onStart, onBack }: SpearSetupProps) {
+export function SpearSetup({ initial, onStart, onOnline, onBack }: SpearSetupProps) {
   const [player1Name, setPlayer1Name] = useState(initial.player1Name)
   const [player2Name, setPlayer2Name] = useState(initial.player2Name)
   const [winningScore, setWinningScore] = useState(initial.winningScore)
@@ -106,8 +107,24 @@ export function SpearSetup({ initial, onStart, onBack }: SpearSetupProps) {
         </div>
 
         <button type="submit" className="btn primary mega">
-          Start Throws
+          Local Throws
         </button>
+        {onOnline && (
+          <button
+            type="button"
+            className="btn wide"
+            onClick={() =>
+              onOnline({
+                player1Name: player1Name.trim() || 'Player 1',
+                player2Name: player2Name.trim() || 'Player 2',
+                winningScore,
+                soundEnabled,
+              })
+            }
+          >
+            Play Online
+          </button>
+        )}
         <button type="button" className="btn ghost wide" onClick={onBack}>
           All Games
         </button>

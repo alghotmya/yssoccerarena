@@ -42,6 +42,7 @@ export class SpearEngine {
   private accumulator = 0
   private aimClock = 0
   private resultTimer = 0
+  networkRole: 'local' | 'host' | 'guest' = 'local'
 
   constructor(
     settings: SpearSettings,
@@ -103,12 +104,14 @@ export class SpearEngine {
     if (!this.running) return
     const elapsed = Math.min(0.05, (now - this.lastTime) / 1000)
     this.lastTime = now
-    this.accumulator += elapsed
-    while (this.accumulator >= PHYSICS_DT) {
-      this.step(PHYSICS_DT)
-      this.accumulator -= PHYSICS_DT
+    if (this.networkRole !== 'guest') {
+      this.accumulator += elapsed
+      while (this.accumulator >= PHYSICS_DT) {
+        this.step(PHYSICS_DT)
+        this.accumulator -= PHYSICS_DT
+      }
+      this.input.endFrame()
     }
-    this.input.endFrame()
     this.raf = requestAnimationFrame(this.frame)
   }
 
@@ -117,10 +120,7 @@ export class SpearEngine {
       this.aimClock += dt * 1.15
       this.aimY = 190 + (Math.sin(this.aimClock) * 0.5 + 0.5) * 450
       this.aimX = TARGET_X + Math.sin(this.aimClock * 0.7) * 160
-      const pressed =
-        this.turn === 1
-          ? this.input.consumeJustPressed('Space')
-          : this.input.consumeJustPressed('Enter')
+      const pressed = this.input.seatActionA(this.turn)
       if (pressed) this.throwSpear()
       return
     }
@@ -201,6 +201,47 @@ export class SpearEngine {
       points: this.points,
       winner: this.winner,
     }
+  }
+
+  exportNetworkState() {
+    return {
+      phase: this.phase,
+      turn: this.turn,
+      score1: this.score1,
+      score2: this.score2,
+      expression1: this.expression1,
+      expression2: this.expression2,
+      zone: this.zone,
+      points: this.points,
+      winner: this.winner,
+      aimX: this.aimX,
+      aimY: this.aimY,
+      spearT: this.spearT,
+      lockedX: this.lockedX,
+      lockedY: this.lockedY,
+      aimClock: this.aimClock,
+      resultTimer: this.resultTimer,
+    }
+  }
+
+  applyNetworkState(state: ReturnType<SpearEngine['exportNetworkState']>) {
+    this.phase = state.phase
+    this.turn = state.turn
+    this.score1 = state.score1
+    this.score2 = state.score2
+    this.expression1 = state.expression1
+    this.expression2 = state.expression2
+    this.zone = state.zone
+    this.points = state.points
+    this.winner = state.winner
+    this.aimX = state.aimX
+    this.aimY = state.aimY
+    this.spearT = state.spearT
+    this.lockedX = state.lockedX
+    this.lockedY = state.lockedY
+    this.aimClock = state.aimClock
+    this.resultTimer = state.resultTimer
+    this.emit()
   }
 }
 
