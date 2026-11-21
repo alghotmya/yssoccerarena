@@ -28,12 +28,15 @@ export interface JetPilot {
   homingTimer: number
   rapid: number
   shield: number
+  pierce: number
+  mega: number
   fireTimer: number
   fireRate: number
   iframe: number
   alive: boolean
   expression: Expression
   color: string
+  accent: string
 }
 
 export interface JetEnemy {
@@ -117,14 +120,22 @@ export interface JetsSnapshot {
   levelTag: string
   score: number
   lives: number
+  maxLives: number
   bombs: number
+  maxBombs: number
   killed: number
   quota: number
   combo: number
+  maxCombo: number
   power: number
+  power2: number
   homing: boolean
   shield: number
   rapid: number
+  pierce: number
+  mega: number
+  rank: string
+  sectorBonus: number
   bossHp: number
   bossMax: number
   bossName: string | null

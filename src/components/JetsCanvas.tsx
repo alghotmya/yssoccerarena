@@ -23,14 +23,22 @@ const emptySnapshot: JetsSnapshot = {
   levelTag: LEVELS[0]!.tag,
   score: 0,
   lives: 3,
+  maxLives: 6,
   bombs: 3,
+  maxBombs: 6,
   killed: 0,
   quota: LEVELS[0]!.quota,
   combo: 0,
+  maxCombo: 0,
   power: 1,
+  power2: 0,
   homing: false,
   shield: 0,
   rapid: 0,
+  pierce: 0,
+  mega: 0,
+  rank: '—',
+  sectorBonus: 0,
   bossHp: 0,
   bossMax: 0,
   bossName: null,
@@ -38,6 +46,24 @@ const emptySnapshot: JetsSnapshot = {
   expression1: 'happy',
   expression2: 'happy',
   won: false,
+}
+
+function Pips({
+  filled,
+  max,
+  kind,
+}: {
+  filled: number
+  max: number
+  kind: 'life' | 'bomb'
+}) {
+  return (
+    <div className={`jets-pips jets-pips-${kind}`} aria-label={`${kind} ${filled}/${max}`}>
+      {Array.from({ length: max }, (_, i) => (
+        <span key={i} className={i < filled ? 'on' : ''} />
+      ))}
+    </div>
+  )
 }
 
 export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }: JetsCanvasProps) {
@@ -112,6 +138,16 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
   }
 
   const ended = snapshot.phase === 'gameover' || snapshot.phase === 'victory'
+  const loadout = [
+    `W${snapshot.power}`,
+    snapshot.homing ? 'H' : null,
+    snapshot.rapid > 0 ? 'R' : null,
+    snapshot.shield > 0 ? 'S' : null,
+    snapshot.pierce > 0 ? 'P' : null,
+    snapshot.mega > 0 ? 'M' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
     <div className="game-shell jets-shell">
@@ -120,36 +156,41 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
           <img src={FACE_PATHS[1][snapshot.expression1]} alt="" />
           <div>
             <strong>{settings.player1Name}</strong>
-            <span>
-              W{snapshot.power}
-              {snapshot.homing ? ' · H' : ''}
-              {snapshot.rapid > 0 ? ' · R' : ''}
-              {snapshot.shield > 0 ? ' · S' : ''}
-            </span>
+            <span>{loadout || 'Ready'}</span>
+            <Pips filled={snapshot.lives} max={snapshot.maxLives} kind="life" />
           </div>
         </div>
         <div className="jets-meta">
           <p className="jets-level">
             Sector {snapshot.levelIndex + 1}/{LEVELS.length} · {snapshot.levelName}
+            {snapshot.rank !== '—' ? ` · Rank ${snapshot.rank}` : ''}
           </p>
           <p>
-            Score {snapshot.score.toLocaleString()} · Lives {snapshot.lives} · Bombs {snapshot.bombs} ·{' '}
+            Score {snapshot.score.toLocaleString()} · Bombs {snapshot.bombs} ·{' '}
             {snapshot.killed}/{snapshot.quota}
-            {snapshot.combo > 1 ? ` · x${(1 + Math.min(snapshot.combo, 20) * 0.1).toFixed(1)}` : ''}
+            {snapshot.combo > 1
+              ? ` · x${(1 + Math.min(snapshot.combo, 20) * 0.1).toFixed(1)}`
+              : ''}
           </p>
+          <Pips filled={snapshot.bombs} max={snapshot.maxBombs} kind="bomb" />
           {snapshot.toast && <p className="jets-toast">{snapshot.toast}</p>}
         </div>
         {settings.coop ? (
           <div className="jets-pilot p2">
             <div>
               <strong>{settings.player2Name}</strong>
-              <span>Wingman</span>
+              <span>
+                Wingman{snapshot.power2 ? ` · W${snapshot.power2}` : ''}
+                {online ? ' · Arrows' : ''}
+              </span>
+              <Pips filled={snapshot.lives} max={snapshot.maxLives} kind="life" />
             </div>
             <img src={FACE_PATHS[2][snapshot.expression2]} alt="" />
           </div>
         ) : (
           <div className="jets-pilot ghost">
             <span>Solo sortie</span>
+            <Pips filled={snapshot.lives} max={snapshot.maxLives} kind="life" />
           </div>
         )}
       </div>
@@ -167,8 +208,8 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
               <p className="final-score">{snapshot.score.toLocaleString()} pts</p>
               <p>
                 {snapshot.won
-                  ? `All ${LEVELS.length} sectors cleared`
-                  : `Reached sector ${snapshot.levelIndex + 1}`}
+                  ? `All ${LEVELS.length} sectors cleared · Best combo x${snapshot.maxCombo}`
+                  : `Reached sector ${snapshot.levelIndex + 1} · Best combo x${snapshot.maxCombo}`}
               </p>
               <div className="gameover-actions">
                 <button type="button" className="btn primary" onClick={restart}>
@@ -189,8 +230,8 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
       <div className="match-toolbar">
         <p className="hint-bar">
           {online
-            ? `Online co-op · Player ${online.seat} · Arrows fly · Shift bomb`
-            : 'WASD / Arrows fly · auto-fire · B or Shift bomb · grab glowing power-ups'}
+            ? `Online co-op · Both players: Arrow keys fly · Shift smart bomb · auto-fire`
+            : 'Local: WASD / Arrows fly · auto-fire · B or Shift bomb · grab W H R S B L P M C'}
         </p>
         <div className="toolbar-actions">
           {!ended && (!online || online.seat === 1) && (

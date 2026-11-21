@@ -4,7 +4,17 @@
  */
 import { InputManager } from '../game/input'
 import type { Expression, PlayerId } from '../types'
-import { ARENA_HEIGHT, ARENA_WIDTH, ENEMY, P1_COLOR, P2_COLOR, POWER } from './constants'
+import {
+  ARENA_HEIGHT,
+  ARENA_WIDTH,
+  ENEMY,
+  MAX_BOMBS,
+  MAX_LIVES,
+  MAX_POWER,
+  P1_COLOR,
+  P2_COLOR,
+  POWER,
+} from './constants'
 import { LEVELS, type EnemyId, type LevelDef } from './levels'
 import type {
   Bullet,
@@ -38,11 +48,14 @@ export class JetsEngine {
   lives = 3
   bombs = 3
   combo = 0
+  maxCombo = 0
   killed = 0
   quota = 0
   toast = ''
   won = false
   shake = 0
+  rank = '—'
+  sectorBonus = 0
 
   private settings: JetsSettings
   private input: InputManager
@@ -64,6 +77,8 @@ export class JetsEngine {
   private clearedTimer = 0
   private toastTimer = 0
   private scrollX = 0
+  private hitsThisLevel = 0
+  private comboDecay = 0
   networkRole: 'local' | 'host' | 'guest' = 'local'
 
   constructor(
@@ -115,6 +130,9 @@ export class JetsEngine {
     this.lives = 3
     this.bombs = 3
     this.combo = 0
+    this.maxCombo = 0
+    this.rank = '—'
+    this.sectorBonus = 0
     this.startCampaign()
     this.emit()
   }
@@ -125,10 +143,11 @@ export class JetsEngine {
     this.shake = 0.9
     this.ebul = []
     this.onBoom()
-    for (let i = this.enemies.length - 1; i >= 0; i--) this.damageEnemy(i, 3)
+    const dmg = 4 + Math.floor(this.levelIndex / 2)
+    for (let i = this.enemies.length - 1; i >= 0; i--) this.damageEnemy(i, dmg)
     if (this.boss && !this.boss.entering) {
-      this.boss.hp -= 40
-      this.burst(this.boss.x, this.boss.y, this.boss.color, 20)
+      this.boss.hp -= 45 + this.levelIndex * 5
+      this.burst(this.boss.x, this.boss.y, this.boss.color, 24)
       if (this.boss.hp <= 0) this.killBoss()
     }
     this.showToast('SMART BOMB!')
@@ -155,9 +174,36 @@ export class JetsEngine {
     this.bossPending = false
     this.spawnTimer = 0.8
     this.combo = 0
-    this.pilots = [makePilot(1, 140, ARENA_HEIGHT * 0.45, P1_COLOR)]
+    this.hitsThisLevel = 0
+    this.sectorBonus = 0
+    this.rank = '—'
+    const keep = this.pilots.map((p) => ({
+      power: Math.max(1, p.power - (p.power > 3 ? 1 : 0)),
+      homing: p.homing,
+      rapid: Math.max(0, p.rapid * 0.25),
+      pierce: Math.max(0, p.pierce * 0.2),
+      mega: 0,
+      shield: 0,
+    }))
+    this.pilots = [makePilot(1, 140, ARENA_HEIGHT * 0.42, P1_COLOR, '#ffb347')]
     if (this.settings.coop) {
-      this.pilots.push(makePilot(2, 140, ARENA_HEIGHT * 0.6, P2_COLOR))
+      this.pilots.push(makePilot(2, 140, ARENA_HEIGHT * 0.62, P2_COLOR, '#7ec8ff'))
+    }
+    // Carry a bit of loadout + soft level-up gift every odd sector
+    for (let i = 0; i < this.pilots.length; i++) {
+      const p = this.pilots[i]!
+      const prev = keep[i]
+      if (prev) {
+        p.power = Math.min(MAX_POWER, Math.max(prev.power, index >= 2 ? 2 : 1))
+        p.homing = prev.homing
+        p.rapid = prev.rapid
+        p.pierce = prev.pierce
+      }
+      if (index > 0 && index % 2 === 1) {
+        p.power = Math.min(MAX_POWER, p.power + 1)
+        p.shield = 2.5
+      }
+      p.iframe = 1.8
     }
     this.phase = 'intro'
     this.introTimer = 2.2
@@ -229,6 +275,14 @@ export class JetsEngine {
 
     if (this.phase !== 'playing') return
 
+    if (this.combo > 0) {
+      this.comboDecay -= dt
+      if (this.comboDecay <= 0) {
+        this.combo = Math.max(0, this.combo - 1)
+        this.comboDecay = 1.2
+      }
+    }
+
     for (const p of this.pilots) {
       if (p.alive) this.updatePilot(p, dt)
     }
@@ -247,44 +301,64 @@ export class JetsEngine {
     const seat = p.id
     const move = seat === 1 ? this.input.getPlayer1Move() : this.input.getPlayer2Move()
     const f = dt * 60
-    p.x += move.x * p.speed * f
-    p.y += move.y * p.speed * f
+    const spd = p.speed * (p.mega > 0 ? 1.12 : 1)
+    p.x += move.x * spd * f
+    p.y += move.y * spd * f
     p.x = clamp(p.x, 40, ARENA_WIDTH * 0.55)
     p.y = clamp(p.y, 40, ARENA_HEIGHT - 40)
     if (p.iframe > 0) p.iframe -= dt
     if (p.shield > 0) p.shield -= dt
     if (p.rapid > 0) p.rapid -= dt
+    if (p.pierce > 0) p.pierce -= dt
+    if (p.mega > 0) p.mega -= dt
     p.fireTimer -= dt
     if (p.fireTimer <= 0) {
-      p.fireTimer = p.rapid > 0 ? p.fireRate * 0.55 : p.fireRate
+      const rate =
+        p.rapid > 0 ? p.fireRate * 0.42 : p.mega > 0 ? p.fireRate * 0.7 : p.fireRate
+      p.fireTimer = rate
       this.fireMain(p)
     }
     if (p.homing) {
       p.homingTimer -= dt
       if (p.homingTimer <= 0) {
-        p.homingTimer = 0.5
+        p.homingTimer = p.rapid > 0 ? 0.35 : 0.48
         this.fireMissiles(p)
       }
+    }
+    // Exhaust trail
+    if (Math.random() < 0.55) {
+      this.parts.push({
+        x: p.x - 26,
+        y: p.y + rand(-4, 4),
+        vx: rand(-3.5, -1.2),
+        vy: rand(-1.2, 1.2),
+        life: 0.45,
+        color: p.id === 1 ? '#ff8a3d' : '#5ecbff',
+      })
     }
   }
 
   private fireMain(p: JetPilot) {
-    const n = p.power
+    const n = Math.min(MAX_POWER, p.power)
     let angles: number[]
     if (n === 1) angles = [0]
-    else if (n === 2) angles = [-0.05, 0.05]
-    else if (n === 3) angles = [-0.14, 0, 0.14]
-    else if (n === 4) angles = [-0.2, -0.07, 0.07, 0.2]
-    else angles = [-0.26, -0.13, 0, 0.13, 0.26]
-    const sp = 12
+    else if (n === 2) angles = [-0.06, 0.06]
+    else if (n === 3) angles = [-0.15, 0, 0.15]
+    else if (n === 4) angles = [-0.22, -0.08, 0.08, 0.22]
+    else if (n === 5) angles = [-0.28, -0.14, 0, 0.14, 0.28]
+    else angles = [-0.34, -0.2, -0.08, 0.08, 0.2, 0.34]
+    const sp = p.mega > 0 ? 15 : 12.5
+    const dmg = (p.mega > 0 ? 2 : 1) + (n >= 5 ? 1 : 0)
+    const r = p.mega > 0 ? 6 : p.pierce > 0 ? 5 : 4
     for (const a of angles) {
       this.pbul.push({
         x: p.x + p.w / 2,
         y: p.y,
         vx: Math.cos(a) * sp,
         vy: Math.sin(a) * sp,
-        r: 4,
-        dmg: 1,
+        r,
+        dmg,
+        life: p.pierce > 0 ? 3 : 1,
         owner: p.id,
       })
     }
@@ -292,15 +366,16 @@ export class JetsEngine {
   }
 
   private fireMissiles(p: JetPilot) {
-    for (const dy of [-12, 12]) {
+    const dyList = p.power >= 4 ? [-16, 0, 16] : [-12, 12]
+    for (const dy of dyList) {
       this.missiles.push({
         x: p.x,
         y: p.y + dy,
-        vx: 4,
-        vy: dy * 0.15,
+        vx: 4.5,
+        vy: dy * 0.12,
         r: 5,
-        dmg: 2,
-        life: 2.5,
+        dmg: 2 + (p.mega > 0 ? 1 : 0),
+        life: 2.8,
         owner: p.id,
       })
     }
@@ -346,6 +421,8 @@ export class JetsEngine {
 
   private spawnEnemy(type: EnemyId, y?: number): JetEnemy {
     const b = ENEMY[type]
+    const lvlScale = 1 + this.levelIndex * 0.08
+    const hp = Math.max(1, Math.round(b.hp * lvlScale))
     const e: JetEnemy = {
       type,
       x: ARENA_WIDTH + 40,
@@ -353,19 +430,19 @@ export class JetsEngine {
       baseY: 0,
       w: b.w,
       h: b.h,
-      hp: b.hp,
-      maxHp: b.hp,
-      speed: b.speed,
+      hp,
+      maxHp: hp,
+      speed: b.speed * (1 + this.levelIndex * 0.035),
       behavior: b.behavior,
       color: b.color,
-      score: b.score,
+      score: Math.round(b.score * this.lvl.scoreMul),
       fire: b.fire || 0,
       spread: Boolean(b.spread),
       fireTimer: rand(0.5, 1.5),
       t: rand(0, Math.PI * 2),
       amp: rand(30, 70),
       flash: 0,
-      dropsPower: Math.random() < 0.14,
+      dropsPower: Math.random() < this.lvl.dropRate,
     }
     e.baseY = e.y
     this.enemies.push(e)
@@ -486,13 +563,39 @@ export class JetsEngine {
     this.burst(this.boss.x, this.boss.y, this.boss.color, 40)
     this.shake = 1
     this.onBoom()
-    this.score += 2000 * (this.levelIndex + 1)
-    this.showToast(`${this.boss.name} DESTROYED`)
+    const bossPts = Math.round(2200 * (this.levelIndex + 1) * this.lvl.scoreMul)
+    this.score += bossPts
+    this.applySectorClearRewards()
+    this.showToast(`${this.boss.name} DOWN · RANK ${this.rank} · +${this.sectorBonus}`)
     this.boss = null
     this.bossPending = true
     this.phase = 'cleared'
-    this.clearedTimer = 1.4
-    this.bombs = Math.min(5, this.bombs + 1)
+    this.clearedTimer = 2.0
+    this.bombs = Math.min(MAX_BOMBS, this.bombs + 1)
+    this.dropPower(ARENA_WIDTH * 0.55, ARENA_HEIGHT * 0.45)
+    this.dropPower(ARENA_WIDTH * 0.55, ARENA_HEIGHT * 0.55)
+  }
+
+  private applySectorClearRewards() {
+    const lifeBonus = this.lives * 600
+    const comboBonus = Math.min(this.maxCombo, 40) * 120
+    const cleanBonus = this.hitsThisLevel === 0 ? 2500 : this.hitsThisLevel <= 1 ? 1000 : 0
+    const base = this.lvl.clearBonus
+    this.sectorBonus = Math.round(base + lifeBonus + comboBonus + cleanBonus)
+    this.score += this.sectorBonus
+    if (this.hitsThisLevel === 0 && this.maxCombo >= 12) this.rank = 'S'
+    else if (this.hitsThisLevel <= 1 && this.combo >= 8) this.rank = 'A'
+    else if (this.hitsThisLevel <= 3) this.rank = 'B'
+    else this.rank = 'C'
+    for (const p of this.pilots) {
+      if (!p.alive) continue
+      p.power = Math.min(MAX_POWER, p.power + 1)
+      p.shield = Math.max(p.shield, 3)
+      p.expression = 'amazed'
+    }
+    if (this.rank === 'S' || this.rank === 'A') {
+      this.lives = Math.min(MAX_LIVES, this.lives + 1)
+    }
   }
 
   private updatePBullets(dt: number) {
@@ -506,7 +609,9 @@ export class JetsEngine {
         continue
       }
       if (this.hitBoss(b)) {
-        this.pbul.splice(i, 1)
+        const pierceLeft = (b.life ?? 1) - 1
+        if (pierceLeft <= 0) this.pbul.splice(i, 1)
+        else b.life = pierceLeft
         continue
       }
       let done = false
@@ -514,7 +619,9 @@ export class JetsEngine {
         const e = this.enemies[j]!
         if (Math.abs(b.x - e.x) < e.w / 2 && Math.abs(b.y - e.y) < e.h / 2) {
           this.damageEnemy(j, b.dmg)
-          done = true
+          const pierceLeft = (b.life ?? 1) - 1
+          if (pierceLeft <= 0) done = true
+          else b.life = pierceLeft
           break
         }
       }
@@ -615,14 +722,24 @@ export class JetsEngine {
   }
 
   private applyPower(p: JetPilot, kind: string) {
-    if (kind === 'W') p.power = Math.min(5, p.power + 1)
-    else if (kind === 'H') p.homing = true
-    else if (kind === 'R') p.rapid = 8
-    else if (kind === 'S') p.shield = 6
-    else if (kind === 'B') this.bombs = Math.min(5, this.bombs + 1)
+    if (kind === 'W') p.power = Math.min(MAX_POWER, p.power + 1)
+    else if (kind === 'H') {
+      p.homing = true
+      p.homingTimer = 0.2
+    } else if (kind === 'R') p.rapid = Math.max(p.rapid, 10)
+    else if (kind === 'S') p.shield = Math.max(p.shield, 7.5)
+    else if (kind === 'B') this.bombs = Math.min(MAX_BOMBS, this.bombs + 1)
     else if (kind === 'L') {
-      this.lives = Math.min(5, this.lives + 1)
-      this.score += 200
+      this.lives = Math.min(MAX_LIVES, this.lives + 1)
+      this.score += 400
+    } else if (kind === 'P') p.pierce = Math.max(p.pierce, 12)
+    else if (kind === 'M') {
+      p.mega = Math.max(p.mega, 9)
+      p.power = Math.min(MAX_POWER, p.power + 1)
+    } else if (kind === 'C') {
+      this.score += 1000 + this.levelIndex * 250
+      this.combo += 3
+      this.maxCombo = Math.max(this.maxCombo, this.combo)
     }
     p.expression = 'amazed'
     this.onPower()
@@ -637,25 +754,40 @@ export class JetsEngine {
     if (e.hp <= 0) {
       this.score += Math.round(e.score * this.comboMul())
       this.combo += 1
+      this.maxCombo = Math.max(this.maxCombo, this.combo)
+      this.comboDecay = 1.6
       this.killed += 1
       this.burst(e.x, e.y, e.color, 12)
       this.onHit()
       if (e.dropsPower) this.dropPower(e.x, e.y)
+      // Milestone crates
+      if (this.killed > 0 && this.killed % 8 === 0) this.dropPower(e.x, e.y - 20)
       this.enemies.splice(i, 1)
     }
   }
 
   private dropPower(x: number, y: number) {
-    const keys = ['W', 'W', 'H', 'R', 'S', 'B', 'L']
-    this.powerups.push({ x, y, kind: keys[(Math.random() * keys.length) | 0]!, vx: -1.4, t: 0 })
+    const late = this.levelIndex >= 5
+    const keys = late
+      ? ['W', 'W', 'H', 'R', 'R', 'S', 'B', 'L', 'P', 'M', 'C']
+      : ['W', 'W', 'W', 'H', 'R', 'S', 'B', 'L', 'P', 'C']
+    this.powerups.push({
+      x,
+      y,
+      kind: keys[(Math.random() * keys.length) | 0]!,
+      vx: -1.5,
+      t: 0,
+    })
   }
 
   private loseLife(p: JetPilot) {
     this.ebul = []
     this.combo = 0
+    this.hitsThisLevel += 1
     this.onHurt()
     this.shake = 0.5
     if (p.power > 1) p.power -= 1
+    p.mega = 0
     p.iframe = 2
     p.expression = 'sad'
     this.lives -= 1
@@ -772,14 +904,22 @@ export class JetsEngine {
       levelTag: this.lvl.tag,
       score: this.score,
       lives: this.lives,
+      maxLives: MAX_LIVES,
       bombs: this.bombs,
+      maxBombs: MAX_BOMBS,
       killed: this.killed,
       quota: this.quota,
       combo: this.combo,
+      maxCombo: this.maxCombo,
       power: p1?.power ?? 1,
+      power2: p2?.power ?? 0,
       homing: Boolean(p1?.homing),
       shield: p1?.shield ?? 0,
       rapid: p1?.rapid ?? 0,
+      pierce: p1?.pierce ?? 0,
+      mega: p1?.mega ?? 0,
+      rank: this.rank,
+      sectorBonus: this.sectorBonus,
       bossHp: this.boss?.hp ?? 0,
       bossMax: this.boss?.maxHp ?? 0,
       bossName: this.boss?.name ?? null,
@@ -835,26 +975,29 @@ export class JetsEngine {
   }
 }
 
-function makePilot(id: PlayerId, x: number, y: number, color: string): JetPilot {
+function makePilot(id: PlayerId, x: number, y: number, color: string, accent: string): JetPilot {
   const expression: Expression = 'happy'
   return {
     id,
     x,
     y,
-    w: 44,
-    h: 28,
-    speed: 5.2,
+    w: 48,
+    h: 30,
+    speed: 5.4,
     power: 1,
     homing: false,
     homingTimer: 0,
     rapid: 0,
     shield: 0,
+    pierce: 0,
+    mega: 0,
     fireTimer: 0,
-    fireRate: 0.18,
+    fireRate: 0.17,
     iframe: 1.5,
     alive: true,
     expression,
     color,
+    accent,
   }
 }
 

@@ -85,7 +85,7 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
 
         <div className="controls-guide">
           <div className="controls-card controls-p1">
-            <h3>Pilot 1 — Red</h3>
+            <h3>Local Pilot 1 — Red</h3>
             <ul>
               <li>
                 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Fly · auto-fire
@@ -96,19 +96,22 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
             </ul>
           </div>
           <div className="controls-card controls-p2">
-            <h3>Pilot 2 — Blue</h3>
+            <h3>Local Pilot 2 / Online</h3>
             <ul>
               <li>
                 <kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> Fly · auto-fire
               </li>
-              <li>Grab W / H / R / S / B / L power-ups</li>
+              <li>
+                Online: <strong>both</strong> use arrows · <kbd>Shift</kbd> bomb
+              </li>
             </ul>
           </div>
         </div>
 
         <p className="online-hint">
           Power-ups: <strong>W</strong> spread · <strong>H</strong> missiles · <strong>R</strong> rapid ·{' '}
-          <strong>S</strong> shield · <strong>B</strong> bomb · <strong>L</strong> life
+          <strong>S</strong> shield · <strong>B</strong> bomb · <strong>L</strong> life ·{' '}
+          <strong>P</strong> pierce · <strong>M</strong> mega · <strong>C</strong> score
         </p>
 
         <button type="submit" className="btn primary mega">

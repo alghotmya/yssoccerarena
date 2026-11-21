@@ -578,6 +578,41 @@ input:focus-visible {
   font-weight: 700;
 }
 
+.jets-pips {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.jets-meta .jets-pips {
+  justify-content: center;
+}
+
+.jets-pilot.p2 .jets-pips {
+  justify-content: flex-end;
+}
+
+.jets-pips span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.jets-pips-life span.on {
+  background: radial-gradient(circle at 35% 30%, #ff8aa8, #e23d3d 70%);
+  border-color: #ffb3c4;
+  box-shadow: 0 0 6px rgba(226, 61, 61, 0.55);
+}
+
+.jets-pips-bomb span.on {
+  background: radial-gradient(circle at 35% 30%, #ffe08a, #ff9f43 70%);
+  border-color: #ffd23f;
+  box-shadow: 0 0 6px rgba(255, 210, 63, 0.45);
+}
+
 .canvas-wrap.jets-wide {
   width: min(1200px, 100%);
 }

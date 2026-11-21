@@ -42,7 +42,14 @@ export const POWER: Record<string, { name: string; color: string }> = {
   S: { name: 'Shield', color: '#7b8cff' },
   B: { name: 'Smart bomb', color: '#ff5e7e' },
   L: { name: 'Extra life', color: '#ff2e97' },
+  P: { name: 'Piercing shot', color: '#ffe066' },
+  M: { name: 'Mega blast', color: '#ff6b35' },
+  C: { name: 'Score burst', color: '#f4d35e' },
 }
+
+export const MAX_POWER = 6
+export const MAX_LIVES = 6
+export const MAX_BOMBS = 6
 
 export const P1_COLOR = '#e23d3d'
 export const P2_COLOR = '#2f6fed'
