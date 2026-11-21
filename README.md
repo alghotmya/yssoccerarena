@@ -1,8 +1,10 @@
 # Face-Off Soccer (Arcade)
 
-Local + online 2-player arcade suite for the browser: soccer, fight, tennis, spear, tanks, and bombs. Mix of air hockey speed, shuffleboard-style kicks, and stick-figure face reactions.
+Local + online 2-player arcade suite for the browser: soccer, fight, tennis, spear, tanks, bombs, and snake. Mix of air hockey speed, shuffleboard-style kicks, and stick-figure face reactions.
 
 **Face-Off Tanks** and **Face-Off Bombs** are original arcade takes inspired by classic top-down tank duels and Bomberman-style arenas (MIT-friendly mechanics; not code copies of any specific repo).
+
+**Face-Off Snake** adapts [bibhuticoder/snake.io](https://github.com/bibhuticoder/snake.io) (MIT) into a 2-player face-off — see `src/snake/NOTICE.md`.
 
 ## Quick start (local)
 

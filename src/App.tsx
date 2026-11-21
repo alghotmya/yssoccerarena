@@ -9,6 +9,8 @@ import { SpearCanvas } from './components/SpearCanvas'
 import { SpearSetup } from './components/SpearSetup'
 import { BombsCanvas } from './components/BombsCanvas'
 import { BombsSetup } from './components/BombsSetup'
+import { SnakeCanvas } from './components/SnakeCanvas'
+import { SnakeSetup } from './components/SnakeSetup'
 import { TanksCanvas } from './components/TanksCanvas'
 import { TanksSetup } from './components/TanksSetup'
 import { TennisCanvas } from './components/TennisCanvas'
@@ -17,6 +19,7 @@ import { VersusScreen } from './components/VersusScreen'
 import type { BombsSettings } from './bombs/types'
 import type { FightSettings } from './fight/types'
 import type { GameKind } from './net/protocol'
+import type { SnakeSettings } from './snake/types'
 import type { SpearSettings } from './spear/types'
 import type { TanksSettings } from './tanks/types'
 import type { TennisSettings } from './tennis/types'
@@ -64,6 +67,13 @@ const defaultBombs: BombsSettings = {
   soundEnabled: true,
 }
 
+const defaultSnake: SnakeSettings = {
+  player1Name: 'Player 1',
+  player2Name: 'Player 2',
+  winningScore: 5,
+  soundEnabled: true,
+}
+
 type Screen =
   | 'pick'
   | 'soccer-setup'
@@ -90,6 +100,10 @@ type Screen =
   | 'bombs-online'
   | 'bombs-vs'
   | 'bombs-match'
+  | 'snake-setup'
+  | 'snake-online'
+  | 'snake-vs'
+  | 'snake-match'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('pick')
@@ -99,6 +113,7 @@ export default function App() {
   const [spear, setSpear] = useState<SpearSettings>(defaultSpear)
   const [tanks, setTanks] = useState<TanksSettings>(defaultTanks)
   const [bombs, setBombs] = useState<BombsSettings>(defaultBombs)
+  const [snake, setSnake] = useState<SnakeSettings>(defaultSnake)
   const [matchKey, setMatchKey] = useState(0)
   const [online, setOnline] = useState<OnlineSession | null>(null)
 
@@ -131,6 +146,9 @@ export default function App() {
     } else if (game === 'bombs') {
       setBombs({ ...defaultBombs, ...(settings as Partial<BombsSettings>) })
       setScreen('bombs-match')
+    } else if (game === 'snake') {
+      setSnake({ ...defaultSnake, ...(settings as Partial<SnakeSettings>) })
+      setScreen('snake-match')
     } else {
       setSpear({ ...defaultSpear, ...(settings as Partial<SpearSettings>) })
       setScreen('spear-match')
@@ -147,6 +165,7 @@ export default function App() {
           onSpear={() => beginLocal('spear-setup')}
           onTanks={() => beginLocal('tanks-setup')}
           onBombs={() => beginLocal('bombs-setup')}
+          onSnake={() => beginLocal('snake-setup')}
         />
       )}
       {screen === 'soccer-setup' && (
@@ -464,6 +483,59 @@ export default function App() {
           onNewGame={() => {
             clearOnline()
             setScreen('bombs-setup')
+          }}
+          onChangeGame={() => {
+            clearOnline()
+            setScreen('pick')
+          }}
+        />
+      )}
+      {screen === 'snake-setup' && (
+        <SnakeSetup
+          initial={snake}
+          onBack={() => setScreen('pick')}
+          onStart={(next) => {
+            setSnake(next)
+            clearOnline()
+            setScreen('snake-vs')
+          }}
+          onOnline={(next) => {
+            setSnake(next)
+            setScreen('snake-online')
+          }}
+        />
+      )}
+      {screen === 'snake-online' && (
+        <OnlineLobby
+          game="snake"
+          gameTitle="Face-Off Snake"
+          defaultName={snake.player1Name}
+          settings={snake as unknown as Record<string, unknown>}
+          onBack={() => setScreen('snake-setup')}
+          onReady={(session, settings) => beginOnlineMatch('snake', session, settings)}
+        />
+      )}
+      {screen === 'snake-vs' && (
+        <VersusScreen
+          title="Face-Off Snake"
+          player1Name={snake.player1Name}
+          player2Name={snake.player2Name}
+          soundEnabled={snake.soundEnabled}
+          onBack={() => setScreen('snake-setup')}
+          onStart={() => {
+            setMatchKey((k) => k + 1)
+            setScreen('snake-match')
+          }}
+        />
+      )}
+      {screen === 'snake-match' && (
+        <SnakeCanvas
+          key={matchKey}
+          settings={snake}
+          online={online}
+          onNewGame={() => {
+            clearOnline()
+            setScreen('snake-setup')
           }}
           onChangeGame={() => {
             clearOnline()

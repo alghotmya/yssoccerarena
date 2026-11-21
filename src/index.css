@@ -490,6 +490,21 @@ input:focus-visible {
   background: linear-gradient(160deg, #c45a2a, #6a2048);
 }
 
+.game-card.snake {
+  background: linear-gradient(160deg, #2f9e6a, #1a4d5c);
+}
+
+.snake-hud {
+  width: min(1280px, 100%);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+  padding: 0 4px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+}
+
 .tanks-hud {
   width: min(1280px, 100%);
   display: grid;
