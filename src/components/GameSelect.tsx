@@ -111,7 +111,7 @@ export function GameSelect({
             ✈️
           </span>
           <strong>Face-Off Jets</strong>
-          <span>35 sectors, bosses & weapon upgrades — shoot everything!</span>
+          <span>35 sectors · Baby→Super Hero difficulty · hero bursts!</span>
         </button>
       </div>
     </div>

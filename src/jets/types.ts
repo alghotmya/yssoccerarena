@@ -1,10 +1,12 @@
 import type { Expression, PlayerId } from '../types'
+import type { JetsDifficulty } from './difficulty'
 import type { EnemyId } from './levels'
 
 export interface JetsSettings {
   player1Name: string
   player2Name: string
   coop: boolean
+  difficulty: JetsDifficulty
   soundEnabled: boolean
 }
 
@@ -118,6 +120,8 @@ export interface JetsSnapshot {
   levelIndex: number
   levelName: string
   levelTag: string
+  difficulty: JetsDifficulty
+  difficultyLabel: string
   score: number
   lives: number
   maxLives: number
@@ -134,6 +138,9 @@ export interface JetsSnapshot {
   rapid: number
   pierce: number
   mega: number
+  heroMeter: number
+  heroReady: boolean
+  perfectStreak: number
   rank: string
   sectorBonus: number
   bossHp: number

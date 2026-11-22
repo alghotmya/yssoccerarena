@@ -21,6 +21,8 @@ const emptySnapshot: JetsSnapshot = {
   levelIndex: 0,
   levelName: LEVELS[0]!.name,
   levelTag: LEVELS[0]!.tag,
+  difficulty: 'normal',
+  difficultyLabel: 'Normal',
   score: 0,
   lives: 3,
   maxLives: 6,
@@ -37,6 +39,9 @@ const emptySnapshot: JetsSnapshot = {
   rapid: 0,
   pierce: 0,
   mega: 0,
+  heroMeter: 0,
+  heroReady: false,
+  perfectStreak: 0,
   rank: '—',
   sectorBonus: 0,
   bossHp: 0,
@@ -165,6 +170,10 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
             Sector {snapshot.levelIndex + 1}/{LEVELS.length} · {snapshot.levelName}
             {snapshot.rank !== '—' ? ` · Rank ${snapshot.rank}` : ''}
           </p>
+          <p className={`jets-diff-tag diff-${snapshot.difficulty}`}>
+            {snapshot.difficultyLabel}
+            {snapshot.perfectStreak > 0 ? ` · Perfect ×${snapshot.perfectStreak}` : ''}
+          </p>
           <p>
             Score {snapshot.score.toLocaleString()} · Bombs {snapshot.bombs} ·{' '}
             {snapshot.killed}/{snapshot.quota}
@@ -172,6 +181,13 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
               ? ` · x${(1 + Math.min(snapshot.combo, 20) * 0.1).toFixed(1)}`
               : ''}
           </p>
+          <div className="jets-hero-track" title="Hero meter — Space when full">
+            <div
+              className={`jets-hero-fill ${snapshot.heroReady ? 'ready' : ''}`}
+              style={{ width: `${Math.min(100, snapshot.heroMeter)}%` }}
+            />
+            <span>{snapshot.heroReady ? 'HERO READY — Space' : 'Hero'}</span>
+          </div>
           <Pips filled={snapshot.bombs} max={snapshot.maxBombs} kind="bomb" />
           {snapshot.toast && <p className="jets-toast">{snapshot.toast}</p>}
         </div>
@@ -207,9 +223,10 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
               <h2>{snapshot.won ? 'Galaxy Secured!' : 'Mission Failed'}</h2>
               <p className="final-score">{snapshot.score.toLocaleString()} pts</p>
               <p>
+                {snapshot.difficultyLabel}
                 {snapshot.won
-                  ? `All ${LEVELS.length} sectors cleared · Best combo x${snapshot.maxCombo}`
-                  : `Reached sector ${snapshot.levelIndex + 1} · Best combo x${snapshot.maxCombo}`}
+                  ? ` · All ${LEVELS.length} sectors · Best combo x${snapshot.maxCombo}`
+                  : ` · Sector ${snapshot.levelIndex + 1} · Best combo x${snapshot.maxCombo}`}
               </p>
               <div className="gameover-actions">
                 <button type="button" className="btn primary" onClick={restart}>
@@ -230,8 +247,8 @@ export function JetsCanvas({ settings, online = null, onNewGame, onChangeGame }:
       <div className="match-toolbar">
         <p className="hint-bar">
           {online
-            ? `Online co-op · Each player: Arrow keys fly · Shift smart bomb · auto-fire`
-            : 'P1 Arrows fly · P2 local WASD · auto-fire · B or Shift bomb · grab W H R S B L P M C'}
+            ? `Online · Arrows fly · Shift bomb · Space hero burst · ${snapshot.difficultyLabel}`
+            : `P1 Arrows · P2 WASD · B/Shift bomb · Space hero · ${snapshot.difficultyLabel}`}
         </p>
         <div className="toolbar-actions">
           {!ended && (!online || online.seat === 1) && (

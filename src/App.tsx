@@ -92,6 +92,7 @@ const defaultJets: JetsSettings = {
   player1Name: 'Player 1',
   player2Name: 'Player 2',
   coop: false,
+  difficulty: 'normal',
   soundEnabled: true,
 }
 

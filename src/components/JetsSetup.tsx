@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { FACE_PATHS } from '../game/constants'
+import { DIFF, DIFFICULTIES, type JetsDifficulty } from '../jets/difficulty'
 import { LEVELS } from '../jets/levels'
 import type { JetsSettings } from '../jets/types'
 
@@ -14,12 +15,15 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
   const [player1Name, setPlayer1Name] = useState(initial.player1Name)
   const [player2Name, setPlayer2Name] = useState(initial.player2Name)
   const [coop, setCoop] = useState(initial.coop)
+  const [difficulty, setDifficulty] = useState<JetsDifficulty>(initial.difficulty ?? 'normal')
   const [soundEnabled, setSoundEnabled] = useState(initial.soundEnabled)
+  const preset = DIFF[difficulty]
 
   const payload = (): JetsSettings => ({
     player1Name: player1Name.trim() || 'Player 1',
     player2Name: player2Name.trim() || 'Player 2',
     coop,
+    difficulty,
     soundEnabled,
   })
 
@@ -30,7 +34,7 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
         <p className="eyebrow">Air campaign</p>
         <h1>Face-Off Jets</h1>
         <p className="subtitle">
-          {LEVELS.length} sectors · bosses · weapon upgrades · smart bombs. Blast through the sky.
+          {LEVELS.length} sectors · difficulty modes · hero burst · bosses & upgrades
         </p>
       </header>
 
@@ -69,6 +73,25 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
           </label>
         </div>
 
+        <fieldset className="jets-diff-field">
+          <legend>Difficulty</legend>
+          <div className="jets-diff-row" role="group" aria-label="Difficulty">
+            {DIFFICULTIES.map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={`jets-diff-btn ${difficulty === id ? 'active' : ''} diff-${id}`}
+                onClick={() => setDifficulty(id)}
+              >
+                {DIFF[id].label}
+              </button>
+            ))}
+          </div>
+          <p className="jets-diff-blurb">
+            {preset.blurb} · {preset.lives} lives · {preset.bombs} bombs · score ×{preset.scoreMul}
+          </p>
+        </fieldset>
+
         <label className="sound-toggle">
           <input type="checkbox" checked={coop} onChange={(e) => setCoop(e.target.checked)} />
           Co-op wingman (2 jets on one keyboard)
@@ -91,7 +114,7 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
                 <kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> Fly · auto-fire
               </li>
               <li>
-                <kbd>B</kbd> / <kbd>Shift</kbd> Smart bomb
+                <kbd>B</kbd> / <kbd>Shift</kbd> Smart bomb · <kbd>Space</kbd> Hero burst
               </li>
             </ul>
           </div>
@@ -102,16 +125,15 @@ export function JetsSetup({ initial, onStart, onOnline, onBack }: JetsSetupProps
                 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Fly · auto-fire
               </li>
               <li>
-                Online: each player uses arrows · <kbd>Shift</kbd> bomb
+                <kbd>Enter</kbd> Hero burst · online: arrows + Shift bomb
               </li>
             </ul>
           </div>
         </div>
 
         <p className="online-hint">
-          Power-ups: <strong>W</strong> spread · <strong>H</strong> missiles · <strong>R</strong> rapid ·{' '}
-          <strong>S</strong> shield · <strong>B</strong> bomb · <strong>L</strong> life ·{' '}
-          <strong>P</strong> pierce · <strong>M</strong> mega · <strong>C</strong> score
+          Fill the gold <strong>Hero meter</strong> with combos, then press Space for a screen-clear
+          burst. Perfect sectors build streak bombs.
         </p>
 
         <button type="submit" className="btn primary mega">
