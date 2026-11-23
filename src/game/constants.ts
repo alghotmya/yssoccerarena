@@ -32,18 +32,19 @@ export const EXPRESSION_HOLD = 2
 export const PLAYER1_COLOR = '#e23d3d'
 export const PLAYER2_COLOR = '#2f6fed'
 
+/** Cartoon avatars (no real player photos). Used for HUD, cockpits, and portraits. */
 export const FACE_PATHS = {
   1: {
-    happy: '/players/player1-happy.jpg',
-    amazed: '/players/player1-amazed.jpg',
-    angry: '/players/player1-angry.jpg',
-    sad: '/players/player1-sad.jpg',
+    happy: '/cartoons/p1-happy.svg',
+    amazed: '/cartoons/p1-amazed.svg',
+    angry: '/cartoons/p1-angry.svg',
+    sad: '/cartoons/p1-sad.svg',
   },
   2: {
-    happy: '/players/player2-happy.jpg',
-    amazed: '/players/player2-amazed.jpg',
-    angry: '/players/player2-angry.jpg',
-    sad: '/players/player2-sad.jpg',
+    happy: '/cartoons/p2-happy.svg',
+    amazed: '/cartoons/p2-amazed.svg',
+    angry: '/cartoons/p2-angry.svg',
+    sad: '/cartoons/p2-sad.svg',
   },
 } as const
 

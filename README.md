@@ -63,9 +63,9 @@ Use **Play Online** on any game setup screen → create/join a room code.
 
 **Do not commit AWS access keys.** Use `~/.aws/credentials` or Amplify/CI roles only.
 
-## Player portraits
+## Cartoon avatars
 
-Place face photos in `public/players/` (`player1-*.jpg` / `player2-*.jpg`). Paths live in `src/game/constants.ts`.
+UI and in-game faces use cartoon SVGs in `public/cartoons/` (no real player photos). Paths live in `src/game/constants.ts`.
 
 ## Scripts
 

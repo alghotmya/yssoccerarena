@@ -1,12 +1,10 @@
+/** Cartoon Face-Off art only — no real player photos. */
 export const SHOWCASE = [
-  '/showcase/01.jpg',
-  '/showcase/02.jpg',
-  '/showcase/03.jpg',
-  '/showcase/04.jpg',
-  '/showcase/05.jpg',
-  '/showcase/06.jpg',
-  '/showcase/07.jpg',
-  '/vs/front.jpg',
+  '/cartoons/vs-duo.svg',
+  '/cartoons/vs-soccer.svg',
+  '/cartoons/vs-fight.svg',
+  '/cartoons/vs-jets.svg',
+  '/cartoons/vs-arcade.svg',
 ] as const
 
 /** Both-player posters only. Each slide stays up for a few seconds. */
